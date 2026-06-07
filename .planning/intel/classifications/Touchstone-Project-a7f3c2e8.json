@@ -1,0 +1,29 @@
+{
+  "source_path": "C:\\Users\\Ben\\Desktop\\B3NSAG3\\Hackathons\\Mantle - Turing\\Touchstone\\Touchstone Project.md",
+  "type": "SPEC",
+  "confidence": "high",
+  "manifest_override": true,
+  "title": "project.md — Touchstone",
+  "summary": "Technical specification for Touchstone, an on-chain AI credit rating agent for RWA assets on Mantle, covering architecture, contracts, agent pipeline, phasing, and hackathon submission requirements.",
+  "scope": [
+    "Touchstone rating engine (off-chain agent)",
+    "RatingRegistry.sol smart contract on Mantle",
+    "ERC-8004 Identity Registry and Reputation Registry integration",
+    "IPFS reasoning hash storage pattern",
+    "Five-dimension deterministic risk scoring (collateral quality, contract risk, oracle integrity, liquidity/stability, governance/custodian)",
+    "LLM reasoning step (Claude) for grade synthesis",
+    "Grade encoding (AAA-D as uint8 0-9)",
+    "RWA subjects: USDY, mETH, fBTC, MI4, Ethena USDe",
+    "Historical-downgrade proof demo",
+    "Tech stack: Solidity/Foundry, TypeScript/Node agent, Next.js frontend, IPFS",
+    "Mantle Turing Test Hackathon 2026 submission (AI x RWA, AI Alpha & Data, 20 Project Deployment Award, Best UI/UX)",
+    "9-day phased build plan with split attention vs Sui Overflow",
+    "Pre-planned scope cut sequence"
+  ],
+  "cross_refs": [
+    "prompt.md"
+  ],
+  "locked": false,
+  "precedence": 0,
+  "notes": ""
+}

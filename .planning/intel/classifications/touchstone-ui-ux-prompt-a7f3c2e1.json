@@ -1,0 +1,31 @@
+{
+  "source_path": "C:\\Users\\Ben\\Desktop\\B3NSAG3\\Hackathons\\Mantle - Turing\\Touchstone\\Touchstone UI-UX Prompt.md",
+  "type": "SPEC",
+  "confidence": "high",
+  "manifest_override": true,
+  "title": "prompt.md — Touchstone UI/UX Build Spec",
+  "summary": "Frontend build spec for the Touchstone Next.js ratings terminal, defining aesthetic direction, design tokens, core screens, AI interaction patterns, accessibility, and demo moments to win Best UI/UX.",
+  "scope": [
+    "Next.js frontend",
+    "Ratings terminal home view",
+    "Rating detail and reasoning drill-down",
+    "Track record timeline view",
+    "Live rating request flow",
+    "Design tokens and CSS variables",
+    "Grade color system (AAA-D)",
+    "Typography (editorial serif + mono/grotesk)",
+    "Motion and interaction design",
+    "Accessibility (plain-language layer, keyboard nav, contrast)",
+    "AI interaction design (streamed reasoning, citations, verifiability)",
+    "On-camera demo moments",
+    "Tailwind utility classes",
+    "ERC-8004 identity surfacing",
+    "On-chain reasoning hash verification UI"
+  ],
+  "cross_refs": [
+    "project.md"
+  ],
+  "locked": false,
+  "precedence": 1,
+  "notes": ""
+}

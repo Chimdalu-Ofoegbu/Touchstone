@@ -1,0 +1,7 @@
+docs:
+  - path: Touchstone Project.md
+    type: SPEC
+    precedence: 0
+  - path: Touchstone UI-UX Prompt.md
+    type: SPEC
+    precedence: 1
