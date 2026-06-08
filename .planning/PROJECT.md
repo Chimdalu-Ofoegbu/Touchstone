@@ -90,6 +90,18 @@ Iterate on **Mantle Sepolia (chain 5003)** through Days 1-4. Deploy ship artifac
 
 </decisions>
 
+## Deployed Addresses
+
+| Contract | Network | Address | Deploy Tx | Verified |
+|----------|---------|---------|-----------|----------|
+| RatingRegistry (Phase 1 skeleton) | Mantle Sepolia (5003) | `0x0912bcBd57579179388cE9d4863032406dCfBe18` | [`0x4cba...16c2b`](https://sepolia.mantlescan.xyz/tx/0x4cba0abfe6aee6c69f4d59d1921ce8fdb3dffa154a0505746049ab71f0f16c2b) | [verified on Mantlescan](https://sepolia.mantlescan.xyz/address/0x0912bcBd57579179388cE9d4863032406dCfBe18) |
+
+Agent address (initial, Phase 1): `0xb27c7fa15D25E880Ba4a9a508e166538e106F51e` — Phase 3 will swap onlyAgent modifier to ERC-8004 NFT-holder gate without redeploy.
+
+Mainnet deploy: scheduled for Day 5 / Phase 5 per DEC-deployment-target-plan. The Sepolia artifact above clears the 20 Project Deployment Award technical bar today (2026-06-08).
+
+See `.planning/phases/01-lock-skeleton/01-03-DEPLOYMENT.md` for the full deployment record (block number, gas used, smoke-tx hash, verification log).
+
 ## Scope Cuts Already Baked Into This Plan
 
 Per the user timeline_override (5 working days, not 8), these cuts are applied at planning time, not as emergency cuts:

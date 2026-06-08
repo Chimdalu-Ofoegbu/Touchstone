@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-06-08T05:11:36Z"
+last_updated: "2026-06-08T06:20:00Z"
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 67
+  completed_plans: 3
+  percent: 100
 ---
 
 # STATE.md — Touchstone
@@ -26,18 +26,17 @@ progress:
 
 ## Current Position
 
-Phase: 01 (lock-skeleton) — EXECUTING
-Plan: 3 of 3 (Plans 1-01 + 1-02 complete — Foundry scaffold + RatingRegistry skeleton landed)
-
-- **Phase:** 1 — Lock + Skeleton
-- **Plan:** Plan 1-03 next (deploy + verify RatingRegistry on Mantle Sepolia → Mainnet per DEC-deployment-target-plan)
-- **Status:** Executing Phase 01 — Plans 1-01 + 1-02 complete, Plan 1-03 pending
-- **Progress:** `[##        ] 0/5 phases complete (2/3 plans in Phase 1)`
+- Phase: 1 — Lock + Skeleton COMPLETE 2026-06-08
+- Plan: 1-03 complete; Phase 1 closed.
+- Status: Skeleton RatingRegistry deployed + verified on Mantle Sepolia. Smoke requestRating transaction observed on-chain. 20 Project Deployment Award technical bar CLEARED.
+- Deployed (Sepolia): 0x0912bcBd57579179388cE9d4863032406dCfBe18 — see .planning/phases/01-lock-skeleton/01-03-DEPLOYMENT.md for tx hashes.
+- Progress: 1/5 phases complete `[##        ] 1/5 phases complete (3/3 plans in Phase 1)`
+- Next: /gsd-plan-phase 2 — Rating Engine Core (Day 2).
 
 ## Performance Metrics
 
 - **Phases planned:** 5
-- **Phases complete:** 0
+- **Phases complete:** 1
 - **Requirements mapped:** 15/15 (100% coverage)
 - **v1 requirements:** 15
 - **v2 deferred:** 5
@@ -75,7 +74,7 @@ All four open discovery items closed by parallel research; findings in `.plannin
 
 - [x] ~~Phase 1 Plan 1-01 — Foundry scaffold (foundry.toml, forge-std v1.16.1, stub .sol files, .env.example, .gitignore)~~ → Completed 2026-06-08, commits `29bbb13` + `c4faaf3`.
 - [x] ~~Phase 1 Plan 1-02 — RatingRegistry contract body + 5 unit tests per 01-VALIDATION.md.~~ → Completed 2026-06-08, commits `6ca550b` (feat) + `7f84073` (test). forge build + forge test both green.
-- [ ] Phase 1 Plan 1-03 — Deploy verified RatingRegistry.sol to Mantle Sepolia (and Mainnet per DEC-deployment-target-plan) — clears the 20 Project Deployment Award bar.
+- [x] ~~Phase 1 Plan 1-03 — Deploy verified RatingRegistry.sol to Mantle Sepolia (and Mainnet per DEC-deployment-target-plan)~~ → DEPLOYED 2026-06-08 (see .planning/phases/01-lock-skeleton/01-03-DEPLOYMENT.md). Mainnet artifact scheduled for Day 5 / Phase 5.
 - [ ] User: pick light vs dark variant of editorial aesthetic before Phase 4 (DEC-aesthetic-direction-editorial — "pick one and execute completely").
 - [x] ~~User: confirm IPFS pinning provider~~ → web3.storage locked 2026-06-07 (DEC-ipfs-provider-web3storage).
 - [x] ~~User: confirm Mainnet vs Testnet for ship~~ → Sepolia iterate, Mainnet ship locked 2026-06-07 (DEC-deployment-target-plan).
@@ -86,18 +85,19 @@ None. Intel marked READY (no blockers, no competing variants).
 
 ## Session Continuity
 
-- **Last session:** 2026-06-08T05:11:36Z — Plan 1-02 executed by gsd plan executor (sequential, main worktree). Full Phase 1 RatingRegistry skeleton landed: `src/RatingRegistry.sol` rewritten from stub to 102-line contract body (Rating struct with 6 fields, agent address, private _history mapping, RatingPublished + RatingRequested events, NotAgent + InvalidGrade errors, onlyAgent modifier, constructor(address initialAgent), requestRating/publishRating/latestRating/ratingHistory). `test/RatingRegistry.t.sol` rewritten with 5 named unit tests per 01-VALIDATION.md (test_publishRating_rejectsNonAgent, test_publishRating_gradeRange, test_requestRating_emitsEvent, test_latestRating_returnsLast, test_ratingHistory_returnsAll). `forge build` green (3 files compiled, 0 warnings, 2 stylistic forge-lint `note` hints accepted per locked-interface design). `forge test` green: 5 passed / 0 failed / 0 skipped on first run. Gas envelope captured: deploy 429,131 gas / 1,806 bytes; publishRating avg 119,583; requestRating 23,333. Zero deviations. Commits `6ca550b` (feat) + `7f84073` (test). See `.planning/phases/01-lock-skeleton/01-02-SUMMARY.md`.
-- **Next session:** Execute Plan 1-03 — deploy verified RatingRegistry.sol to Mantle Sepolia (chain 5003) via `forge script script/Deploy.s.sol:Deploy --rpc-url mantle_sepolia --broadcast --verify --verifier blockscout` per DEC-deployment-target-plan, then mirror to Mantle Mainnet (5000) for the submission artifact. Clears the 20 Project Deployment Award bar.
-- **Artifacts written this session (Plan 1-02):**
-  - `src/RatingRegistry.sol` (stub → full skeleton, modified)
-  - `test/RatingRegistry.t.sol` (stub → 5 unit tests, modified)
-  - `.planning/phases/01-lock-skeleton/01-02-SUMMARY.md` (created)
-  - `.planning/STATE.md` (this update)
-  - `.planning/ROADMAP.md` (Phase 1 progress row updated: 2/3)
+- **Last session:** 2026-06-08T06:20:00Z — Plan 1-03 executed by gsd plan executor (sequential, main worktree, continuation after user-funding checkpoint). Deploy.s.sol broadcast against Mantle Sepolia (chain 5003); RatingRegistry deployed at `0x0912bcBd57579179388cE9d4863032406dCfBe18` (block 39677059, deploy tx `0x4cba0abfe6aee6c69f4d59d1921ce8fdb3dffa154a0505746049ab71f0f16c2b`, gas 429245). `cast call agent()` returned the deployer `0xb27c7fa15D25E880Ba4a9a508e166538e106F51e` — constructor initialized state correctly. Source verified on Mantlescan / Etherscan V2 (chainid=5003) at `https://sepolia.mantlescan.xyz/address/0x0912bcBd57579179388cE9d4863032406dCfBe18` — Blockscout API at explorer.sepolia.mantle.xyz was returning persistent 503 across all endpoints during the execution window so we fell back to `forge verify-contract --chain-id 5003 --etherscan-api-key` which succeeded; Etherscan V2 getsourcecode returned ContractName=RatingRegistry, CompilerVersion=v0.8.24+commit.e11b9ed9, non-empty SourceCode, OptimizationUsed=1. Smoke `requestRating` tx sent from a fresh second wallet `0xb2Cf716A77C8739E3675203bb18E3ED6Ca50ecA4` (funded with 0.11 MNT from the deployer): tx `0x5846ec352e58259a8e5cebcc207d10368f96ff41a131c7dfd459f76fce2c0390` block 39677253; RatingRequested event observed (sig `0xf2c7f32ca728a7137bebb36fb9afaf4d7a6d25af26b5c68bd8f2b032a6dae996`) with indexed subject `0xdEaD000000000000000022d473030F116dDEE9F6` and indexed requester = second wallet — proves "anyone can trigger" per DEC-onchain-trigger-requestRating. `forge build` + `forge test -q` both green post-deploy. Three commits: `7b3e79b` (feat — deploy + verify + DEPLOYMENT.md), plus the STATE/PROJECT/SUMMARY commits that follow. See `.planning/phases/01-lock-skeleton/01-03-SUMMARY.md` and `01-03-DEPLOYMENT.md`. **Phase 1 CLOSED. 20 Project Deployment Award technical bar CLEARED.**
+- **Next session:** `/gsd-plan-phase 2` — Rating Engine Core (Day 2). Phase 5 (Day 5) re-runs Deploy.s.sol against Mantle Mainnet (chain 5000) with `--rpc-url https://rpc.mantle.xyz` and a Mainnet-funded deployer key.
+- **Artifacts written this session (Plan 1-03):**
+  - `.planning/phases/01-lock-skeleton/01-03-DEPLOYMENT.md` (created — single source of truth for Sepolia deploy artifacts)
+  - `.planning/phases/01-lock-skeleton/01-03-SUMMARY.md` (created)
+  - `.planning/STATE.md` (this update — Current Position, progress, todos)
+  - `.planning/PROJECT.md` (Deployed Addresses section appended after `</decisions>`)
+  - `.planning/ROADMAP.md` (Phase 1 row → Complete, 3/3 plans)
 - **Intel sources consulted (this session):**
-  - `.planning/phases/01-lock-skeleton/1-02-PLAN.md`
-  - `.planning/phases/01-lock-skeleton/RESEARCH.md` (Stub RatingRegistry.sol, Minimum acceptable Foundry test, Pitfall 5)
-  - `.planning/phases/01-lock-skeleton/01-VALIDATION.md` (per-task verification map)
-  - `.planning/phases/01-lock-skeleton/01-01-SUMMARY.md` (Wave 1 starting state)
-  - `.planning/PROJECT.md` (DEC-grade-encoding-uint8, DEC-erc8004-canonical-addresses, CON-* invariants)
-  - `.planning/REQUIREMENTS.md` (REQ-02 acceptance — skeleton scope only; full REQ stays Phase 3)
+  - `.planning/phases/01-lock-skeleton/1-03-PLAN.md` (interfaces block, action steps, acceptance criteria)
+  - `.planning/phases/01-lock-skeleton/RESEARCH.md` (Pitfall 3 — --verify silent skip; Track B Stream 5 — verification path)
+  - `.planning/phases/01-lock-skeleton/01-VALIDATION.md` (per-task verification map rows 1-03-01 / 1-03-02)
+  - `.planning/phases/01-lock-skeleton/01-01-SUMMARY.md` + `01-02-SUMMARY.md` (Wave 2 starting state)
+  - `script/Deploy.s.sol` (committed `8bf1be7` Task 1-03-01)
+  - `foundry.toml` (mantle_sepolia RPC alias, [etherscan] Blockscout endpoint)
+  - `.env` (PRIVATE_KEY, MANTLE_SEPOLIA_RPC_URL, MANTLE_EXPLORER_KEY)

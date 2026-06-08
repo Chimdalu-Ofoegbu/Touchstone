@@ -6,7 +6,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: Lock + Skeleton** (Day 1, 2026-06-08) — Phase 0 verification (subjects, ERC-8004, 2025 failure, prize allocation) AND deploy verified `RatingRegistry.sol` skeleton on Mantle with stub `requestRating` → stub `publishRating`. Clears 20 Project Deployment Award bar end of day.
+- [x] **Phase 1: Lock + Skeleton** (Day 1, 2026-06-08) — Phase 0 verification (subjects, ERC-8004, 2025 failure, prize allocation) AND deploy verified `RatingRegistry.sol` skeleton on Mantle with stub `requestRating` → stub `publishRating`. **Complete 2026-06-08.** Sepolia address `0x0912bcBd57579179388cE9d4863032406dCfBe18`, verified on Mantlescan. Smoke `requestRating` tx from non-agent wallet confirmed. 20 Project Deployment Award technical bar CLEARED. See `.planning/phases/01-lock-skeleton/01-03-DEPLOYMENT.md`.
 - [ ] **Phase 2: Rating Engine Core** (Day 2, 2026-06-09) — Data ingestion, four deterministic scoring modules, Claude reasoning step. Hardcode three subjects.
 - [ ] **Phase 3: On-Chain Publish + ERC-8004 + Historical Reconstruction Start** (Day 3, 2026-06-10) — Real `publishRating`, IPFS pinning, agent identity NFT mint, `latestRating`/`ratingHistory` reads. Begin pre-failure state reconstruction.
 - [ ] **Phase 4: Frontend (3 Screens) + Historical Proof Finish** (Day 4, 2026-06-11) — Ratings terminal, reasoning drill-down, track-record view with finished historical-downgrade proof.
@@ -80,7 +80,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Lock + Skeleton | 2/3 | In Progress | - |
+| 1. Lock + Skeleton | 3/3 | Complete | 2026-06-08 |
 | 2. Rating Engine Core | 0/0 | Not started | - |
 | 3. On-Chain Publish + ERC-8004 + Historical Start | 0/0 | Not started | - |
 | 4. Frontend (3 Screens) + Historical Finish | 0/0 | Not started | - |
