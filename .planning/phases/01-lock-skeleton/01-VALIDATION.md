@@ -40,11 +40,11 @@ created: 2026-06-07
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 1-01-01 | 01 | 0 | REQ-15 | — | Project compiles with Foundry | smoke | `forge build` | ❌ W0 | ⬜ pending |
 | 1-01-02 | 01 | 0 | REQ-15 | — | Test scaffolding in place | smoke | `test -f test/RatingRegistry.t.sol` | ❌ W0 | ⬜ pending |
-| 1-02-01 | 02 | 1 | REQ-02 | T-1-01 | onlyAgent gate rejects non-agent callers | unit | `forge test --match-test test_publishRating_rejectsNonAgent` | ❌ W0 | ⬜ pending |
-| 1-02-02 | 02 | 1 | REQ-02 | — | Grade enum 0-9 maps AAA-D, reverts above 9 | unit | `forge test --match-test test_publishRating_gradeRange` | ❌ W0 | ⬜ pending |
-| 1-02-03 | 02 | 1 | REQ-02 | — | requestRating emits RatingRequested for any caller | unit | `forge test --match-test test_requestRating_emitsEvent` | ❌ W0 | ⬜ pending |
-| 1-02-04 | 02 | 1 | REQ-02 | — | latestRating returns last published rating | unit | `forge test --match-test test_latestRating_returnsLast` | ❌ W0 | ⬜ pending |
-| 1-02-05 | 02 | 1 | REQ-02 | — | ratingHistory returns full timeline | unit | `forge test --match-test test_ratingHistory_returnsAll` | ❌ W0 | ⬜ pending |
+| 1-02-02-a | 02 | 1 | REQ-02 | T-1-01 | onlyAgent gate rejects non-agent callers | unit | `forge test --match-test test_publishRating_rejectsNonAgent` | ❌ W0 | ⬜ pending |
+| 1-02-02-b | 02 | 1 | REQ-02 | — | Grade enum 0-9 maps AAA-D, reverts above 9 | unit | `forge test --match-test test_publishRating_gradeRange` | ❌ W0 | ⬜ pending |
+| 1-02-02-c | 02 | 1 | REQ-02 | — | requestRating emits RatingRequested for any caller | unit | `forge test --match-test test_requestRating_emitsEvent` | ❌ W0 | ⬜ pending |
+| 1-02-02-d | 02 | 1 | REQ-02 | — | latestRating returns last published rating | unit | `forge test --match-test test_latestRating_returnsLast` | ❌ W0 | ⬜ pending |
+| 1-02-02-e | 02 | 1 | REQ-02 | — | ratingHistory returns full timeline | unit | `forge test --match-test test_ratingHistory_returnsAll` | ❌ W0 | ⬜ pending |
 | 1-03-01 | 03 | 2 | REQ-15 | — | Contract deployed and verified on Mantle Sepolia | integration | `cast call $RATING_REGISTRY "agent()(address)" --rpc-url https://rpc.sepolia.mantle.xyz` | ❌ W0 | ⬜ pending |
 | 1-03-02 | 03 | 2 | REQ-15 | — | Blockscout verification succeeded | manual | (open Sepolia Mantlescan, check "Contract" tab shows verified source) | ❌ W0 | ⬜ pending |
 

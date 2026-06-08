@@ -1,3 +1,17 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: executing
+last_updated: "2026-06-08T04:45:08.343Z"
+progress:
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 3
+  completed_plans: 0
+  percent: 0
+---
+
 # STATE.md — Touchstone
 
 > Project memory. Updated by orchestrators after each phase/plan transition.
@@ -14,7 +28,7 @@
 
 - **Phase:** 1 — Lock + Skeleton
 - **Plan:** None yet (awaiting `/gsd-plan-phase 1`)
-- **Status:** Roadmap drafted; not yet started building.
+- **Status:** Ready to execute
 - **Progress:** `[          ] 0/5 phases complete`
 
 ## Performance Metrics
@@ -32,6 +46,7 @@
 ### Locked Decisions (18 total: 13 spec-asserted + 5 added at Phase 1 discovery 2026-06-07)
 
 Listed in `.planning/PROJECT.md` under `<decisions>`. Three modified or added at planning time per user timeline_override; five added at Phase 1 discovery lock:
+
 - **DEC-five-deterministic-risk-dimensions → FOUR.** Governance/custodian dimension dropped per DEC-scope-cut-sequence #3.
 - **DEC-scope-cut-sequence applied proactively** for cuts #1, #3, #4 (not just contingency).
 - **DEC-subject-set-locked:** USDY + cmETH + FBTC (cmETH replaces spec's mETH — Mantle-native variant).

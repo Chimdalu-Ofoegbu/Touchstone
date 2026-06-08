@@ -676,12 +676,12 @@ Phase 1 critical path requires the following on the developer machine. Foundry c
 ### Phase Requirements → Test Map
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| REQ-02 (skeleton) | `requestRating(addr)` emits `RatingRequested` with correct args | unit | `forge test --match-test testRequestEmits -vvv` | ❌ Wave 0 — create `test/RatingRegistry.t.sol` |
-| REQ-02 (skeleton) | `publishRating` by agent records and emits | unit | `forge test --match-test testPublishByAgent -vvv` | ❌ Wave 0 |
-| REQ-02 (skeleton) | `publishRating` by non-agent reverts | unit | `forge test --match-test testPublishByOtherReverts -vvv` | ❌ Wave 0 |
-| REQ-02 (skeleton) | `latestRating(addr)` returns last `Rating` struct | unit | folded into `testPublishByAgent` | ❌ Wave 0 |
-| REQ-02 (skeleton) | `ratingHistory(addr)` returns array | unit | add `testHistoryReturnsArray` to t.sol | ❌ Wave 0 |
-| REQ-02 (skeleton) | Grade encoding rejects > 9 | unit | add `testInvalidGradeReverts` | ❌ Wave 0 |
+| REQ-02 (skeleton) | `requestRating(addr)` emits `RatingRequested` with correct args | unit | `forge test --match-test test_requestRating_emitsEvent -vvv` | ❌ Wave 0 — create `test/RatingRegistry.t.sol` |
+| REQ-02 (skeleton) | `publishRating` by agent records and emits (covered via latestRating/ratingHistory assertions) | unit | `forge test --match-test test_latestRating_returnsLast -vvv` | ❌ Wave 0 |
+| REQ-02 (skeleton) | `publishRating` by non-agent reverts | unit | `forge test --match-test test_publishRating_rejectsNonAgent -vvv` | ❌ Wave 0 |
+| REQ-02 (skeleton) | `latestRating(addr)` returns last `Rating` struct | unit | `forge test --match-test test_latestRating_returnsLast -vvv` | ❌ Wave 0 |
+| REQ-02 (skeleton) | `ratingHistory(addr)` returns array | unit | `forge test --match-test test_ratingHistory_returnsAll -vvv` | ❌ Wave 0 |
+| REQ-02 (skeleton) | Grade encoding rejects > 9 | unit | `forge test --match-test test_publishRating_gradeRange -vvv` | ❌ Wave 0 |
 | REQ-15 | Deployed + verified on Mantle (manual gate, NOT unit test) | manual / smoke | After deploy: open `explorer.mantle.xyz/address/$ADDR` and confirm "Verified" badge | n/a |
 
 ### Sampling Rate
@@ -732,27 +732,31 @@ Phase 1 is greenfield contract scaffolding on Mantle. Applicable ASVS subset:
 | A4 | A single dev wallet has Mainnet MNT for deployment | Environment Availability | LOW — Sepolia is an acceptable submission target per CON-public-deployment. |
 | A5 | The Touchstone UI-UX rubric percentages (Visual 30% / Interaction 30% / AI Interaction 25% / Accessibility 15%) are internal targets, not the hackathon's published Best UI/UX criteria (which is "Best UX & Smoothest Web2 Onboarding") | Stream 4 | LOW — alignment is good (smoothest onboarding maps to REQ-11 newcomer comprehension); the rubric percentages drive design discipline regardless of source. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Validation Registry address on Mantle?**
    - What we know: same deployer `0x21df5569d53aaf0c5e7982b448ef5a2bcbb3b1e5` likely deployed it; canonical repo flags it as "still under active update."
    - What's unclear: address, ABI stability.
    - Recommendation: leave for Phase 3; cast `getCode` on candidate vanity addresses (`0x8004...` prefix) on Mantle if needed.
+   - RESOLVED: Out of Phase 1 scope per DEC-erc8004-canonical-addresses — Phase 1 uses only the canonical Identity Registry (0x8004A169FB4a3325136EB29fA0ceB6D2e539a432) and Reputation Registry (0x8004BAa17C55a88189AE136b182e5fdA19dE9b63); Validation Registry resolution is deferred to Phase 3.
 
 2. **Exact Best UI/UX rubric.**
    - What we know: hackathon page says "Best UX & Smoothest Web2 Onboarding" — qualitative.
    - What's unclear: weighting between visual polish vs. accessibility vs. AI interaction.
    - Recommendation: use Touchstone UI-UX Prompt's internal rubric as discipline; surface "newcomer with no DeFi knowledge can grasp grades" as the explicit demo theme.
+   - RESOLVED: Out of Phase 1 scope — Phase 1 ships contract skeleton only; UI/UX rubric weighting is a Phase 4 (frontend) concern. Touchstone UI-UX Prompt internal rubric is adopted as the working standard.
 
 3. **Submission count visibility on DoraHacks.**
    - What we know: 955 registered hackers as of pre-fetch; actual submitted count not visible without authenticated access.
    - What's unclear: how crowded the AI x RWA track is at submission close.
    - Recommendation: not a Phase 1 blocker; revisit Day 4-5 to size up competition for pitch sharpening.
+   - RESOLVED: Out of Phase 1 scope — competitive sizing is a Phase 5 (Ship) pitch concern, not a Phase 1 build blocker.
 
 4. **mETH-on-Mantle vs cmETH choice — final confirmation.**
    - What we know: cmETH is the Mantle-L2-native restaked variant with its own dynamics; mETH on Mantle is a bridge wrapper of the L1-staked asset.
    - What's unclear: which one the AI x RWA track judges expect to see rated (the track page calls out "mETH" explicitly).
    - Recommendation: rate **both grades visible in the explanation copy** if possible: "cmETH (rated subject); mETH bridge — same restake exposure plus bridge risk." This is a free credibility move. Phase 2 decision.
+   - RESOLVED: Subject set is locked per DEC-subject-set-locked — Phase 1 contract is subject-agnostic (stores ratings for any address). Subject selection (mETH vs cmETH framing) is a Phase 2 (Rating Engine) concern and does not affect the Phase 1 skeleton.
 
 ## Sources
 
