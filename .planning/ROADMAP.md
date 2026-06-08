@@ -80,7 +80,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Lock + Skeleton | 1/3 | In Progress | - |
+| 1. Lock + Skeleton | 2/3 | In Progress | - |
 | 2. Rating Engine Core | 0/0 | Not started | - |
 | 3. On-Chain Publish + ERC-8004 + Historical Start | 0/0 | Not started | - |
 | 4. Frontend (3 Screens) + Historical Finish | 0/0 | Not started | - |

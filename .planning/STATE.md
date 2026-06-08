@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-06-08T05:03:47.343Z"
+last_updated: "2026-06-08T05:11:36Z"
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
-  percent: 33
+  completed_plans: 2
+  percent: 67
 ---
 
 # STATE.md — Touchstone
@@ -27,12 +27,12 @@ progress:
 ## Current Position
 
 Phase: 01 (lock-skeleton) — EXECUTING
-Plan: 2 of 3 (Plan 1-01 complete — Foundry scaffold landed)
+Plan: 3 of 3 (Plans 1-01 + 1-02 complete — Foundry scaffold + RatingRegistry skeleton landed)
 
 - **Phase:** 1 — Lock + Skeleton
-- **Plan:** Plan 1-02 next (RatingRegistry contract body + 5 unit tests)
-- **Status:** Executing Phase 01 — Plan 1-01 complete, Plan 1-02 pending
-- **Progress:** `[          ] 0/5 phases complete (1/3 plans in Phase 1)`
+- **Plan:** Plan 1-03 next (deploy + verify RatingRegistry on Mantle Sepolia → Mainnet per DEC-deployment-target-plan)
+- **Status:** Executing Phase 01 — Plans 1-01 + 1-02 complete, Plan 1-03 pending
+- **Progress:** `[##        ] 0/5 phases complete (2/3 plans in Phase 1)`
 
 ## Performance Metrics
 
@@ -74,7 +74,7 @@ All four open discovery items closed by parallel research; findings in `.plannin
 ### Open Todos
 
 - [x] ~~Phase 1 Plan 1-01 — Foundry scaffold (foundry.toml, forge-std v1.16.1, stub .sol files, .env.example, .gitignore)~~ → Completed 2026-06-08, commits `29bbb13` + `c4faaf3`.
-- [ ] Phase 1 Plan 1-02 — RatingRegistry contract body + 5 unit tests per 01-VALIDATION.md.
+- [x] ~~Phase 1 Plan 1-02 — RatingRegistry contract body + 5 unit tests per 01-VALIDATION.md.~~ → Completed 2026-06-08, commits `6ca550b` (feat) + `7f84073` (test). forge build + forge test both green.
 - [ ] Phase 1 Plan 1-03 — Deploy verified RatingRegistry.sol to Mantle Sepolia (and Mainnet per DEC-deployment-target-plan) — clears the 20 Project Deployment Award bar.
 - [ ] User: pick light vs dark variant of editorial aesthetic before Phase 4 (DEC-aesthetic-direction-editorial — "pick one and execute completely").
 - [x] ~~User: confirm IPFS pinning provider~~ → web3.storage locked 2026-06-07 (DEC-ipfs-provider-web3storage).
@@ -86,20 +86,18 @@ None. Intel marked READY (no blockers, no competing variants).
 
 ## Session Continuity
 
-- **Last session:** 2026-06-08T05:01:06Z — Plan 1-01 executed by gsd plan executor. Foundry scaffold landed at repo root: `foundry.toml` (solc 0.8.24, mantle + mantle_sepolia RPC), `lib/forge-std` v1.16.1 (commit `620536fa`), stub `src/RatingRegistry.sol` + `src/constants/GradeEnum.sol`, stub `test/RatingRegistry.t.sol`, stub `script/Deploy.s.sol`, `.env.example`, `.gitignore`. `forge build` exits 0 (24 files compiled). `forge test` exits 0 ("no tests found"). One Rule-3 auto-fix: dropped `--no-commit` flag from `forge install` (no longer supported in forge 1.5.1). See `.planning/phases/01-lock-skeleton/01-01-SUMMARY.md`. Commits `29bbb13` (chore: init Foundry) + `c4faaf3` (feat: scaffold stubs).
-- **Next session:** Execute Plan 1-02 — fill `src/RatingRegistry.sol` with the production contract body (Rating struct, agent address, _history mapping, RatingPublished/RatingRequested events, NotAgent/InvalidGrade errors, onlyAgent modifier, requestRating/publishRating/latestRating/ratingHistory) and the 5 unit tests in `test/RatingRegistry.t.sol` per 01-VALIDATION.md.
-- **Artifacts written this session (Plan 1-01):**
-  - `foundry.toml`, `remappings.txt`, `.gitignore`, `.gitmodules`, `.env.example`, `foundry.lock`
-  - `lib/forge-std/` (submodule, v1.16.1)
-  - `src/RatingRegistry.sol`, `src/constants/GradeEnum.sol`
-  - `test/RatingRegistry.t.sol`
-  - `script/Deploy.s.sol`
-  - `.planning/phases/01-lock-skeleton/01-01-SUMMARY.md`
+- **Last session:** 2026-06-08T05:11:36Z — Plan 1-02 executed by gsd plan executor (sequential, main worktree). Full Phase 1 RatingRegistry skeleton landed: `src/RatingRegistry.sol` rewritten from stub to 102-line contract body (Rating struct with 6 fields, agent address, private _history mapping, RatingPublished + RatingRequested events, NotAgent + InvalidGrade errors, onlyAgent modifier, constructor(address initialAgent), requestRating/publishRating/latestRating/ratingHistory). `test/RatingRegistry.t.sol` rewritten with 5 named unit tests per 01-VALIDATION.md (test_publishRating_rejectsNonAgent, test_publishRating_gradeRange, test_requestRating_emitsEvent, test_latestRating_returnsLast, test_ratingHistory_returnsAll). `forge build` green (3 files compiled, 0 warnings, 2 stylistic forge-lint `note` hints accepted per locked-interface design). `forge test` green: 5 passed / 0 failed / 0 skipped on first run. Gas envelope captured: deploy 429,131 gas / 1,806 bytes; publishRating avg 119,583; requestRating 23,333. Zero deviations. Commits `6ca550b` (feat) + `7f84073` (test). See `.planning/phases/01-lock-skeleton/01-02-SUMMARY.md`.
+- **Next session:** Execute Plan 1-03 — deploy verified RatingRegistry.sol to Mantle Sepolia (chain 5003) via `forge script script/Deploy.s.sol:Deploy --rpc-url mantle_sepolia --broadcast --verify --verifier blockscout` per DEC-deployment-target-plan, then mirror to Mantle Mainnet (5000) for the submission artifact. Clears the 20 Project Deployment Award bar.
+- **Artifacts written this session (Plan 1-02):**
+  - `src/RatingRegistry.sol` (stub → full skeleton, modified)
+  - `test/RatingRegistry.t.sol` (stub → 5 unit tests, modified)
+  - `.planning/phases/01-lock-skeleton/01-02-SUMMARY.md` (created)
   - `.planning/STATE.md` (this update)
-  - `.planning/ROADMAP.md` (plan-progress row updated via `gsd-sdk roadmap update-plan-progress 01`)
-- **Intel sources consulted (prior session):**
-  - `.planning/intel/SYNTHESIS.md`
-  - `.planning/intel/decisions.md`
-  - `.planning/intel/requirements.md`
-  - `.planning/intel/constraints.md`
-  - `.planning/intel/context.md`
+  - `.planning/ROADMAP.md` (Phase 1 progress row updated: 2/3)
+- **Intel sources consulted (this session):**
+  - `.planning/phases/01-lock-skeleton/1-02-PLAN.md`
+  - `.planning/phases/01-lock-skeleton/RESEARCH.md` (Stub RatingRegistry.sol, Minimum acceptable Foundry test, Pitfall 5)
+  - `.planning/phases/01-lock-skeleton/01-VALIDATION.md` (per-task verification map)
+  - `.planning/phases/01-lock-skeleton/01-01-SUMMARY.md` (Wave 1 starting state)
+  - `.planning/PROJECT.md` (DEC-grade-encoding-uint8, DEC-erc8004-canonical-addresses, CON-* invariants)
+  - `.planning/REQUIREMENTS.md` (REQ-02 acceptance — skeleton scope only; full REQ stays Phase 3)
