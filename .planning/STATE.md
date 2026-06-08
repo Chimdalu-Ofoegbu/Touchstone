@@ -26,11 +26,11 @@ progress:
 
 ## Current Position
 
-- Phase: 1 — Lock + Skeleton COMPLETE 2026-06-08
-- Plan: 1-03 complete; Phase 1 closed.
-- Status: Skeleton RatingRegistry deployed + verified on Mantle Sepolia. Smoke requestRating transaction observed on-chain. 20 Project Deployment Award technical bar CLEARED.
-- Deployed (Sepolia): 0x0912bcBd57579179388cE9d4863032406dCfBe18 — see .planning/phases/01-lock-skeleton/01-03-DEPLOYMENT.md for tx hashes.
-- Progress: 1/5 phases complete `[##        ] 1/5 phases complete (3/3 plans in Phase 1)`
+- Phase: 1 — Lock + Skeleton COMPLETE 2026-06-08 (+ post-review hardening redeploy 2026-06-08)
+- Plan: 1-03 complete; Phase 1 closed. Post-phase polish (WR-01/WR-02/WR-03/WR-04 from 01-REVIEW.md) applied and redeployed to Sepolia.
+- Status: Hardened RatingRegistry deployed + verified on Mantle Sepolia at `0x54163E309f7C8108F7110B086F640882a97f3838`. Smoke requestRating transaction observed on-chain from non-agent wallet. 20 Project Deployment Award technical bar CLEARED.
+- Deployed (Sepolia canonical): `0x54163E309f7C8108F7110B086F640882a97f3838` (Phase 1 hardened — confidence bound + immutable agent). Historical Phase 1.0 deploy at `0x0912bcBd57579179388cE9d4863032406dCfBe18` superseded but left on-chain. See .planning/phases/01-lock-skeleton/01-03-DEPLOYMENT.md for both records.
+- Progress: 1/5 phases complete `[##        ] 1/5 phases complete (3/3 plans in Phase 1 + post-review polish)`
 - Next: /gsd-plan-phase 2 — Rating Engine Core (Day 2).
 
 ## Performance Metrics

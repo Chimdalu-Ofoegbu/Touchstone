@@ -92,15 +92,23 @@ Iterate on **Mantle Sepolia (chain 5003)** through Days 1-4. Deploy ship artifac
 
 ## Deployed Addresses
 
+**Current canonical Sepolia deploy** (Phase 1 skeleton + WR-01/WR-02/WR-03/WR-04 hardening from 01-REVIEW.md):
+
 | Contract | Network | Address | Deploy Tx | Verified |
 |----------|---------|---------|-----------|----------|
-| RatingRegistry (Phase 1 skeleton) | Mantle Sepolia (5003) | `0x0912bcBd57579179388cE9d4863032406dCfBe18` | [`0x4cba...16c2b`](https://sepolia.mantlescan.xyz/tx/0x4cba0abfe6aee6c69f4d59d1921ce8fdb3dffa154a0505746049ab71f0f16c2b) | [verified on Mantlescan](https://sepolia.mantlescan.xyz/address/0x0912bcBd57579179388cE9d4863032406dCfBe18) |
+| RatingRegistry (Phase 1 hardened) | Mantle Sepolia (5003) | `0x54163E309f7C8108F7110B086F640882a97f3838` | [`0xb397...f399`](https://sepolia.mantlescan.xyz/tx/0xb39726dd41e43956ab98f4363347d0b65af1ecd53c4488d84ec1e7d79916f399) | [verified on Mantlescan](https://sepolia.mantlescan.xyz/address/0x54163E309f7C8108F7110B086F640882a97f3838) |
 
-Agent address (initial, Phase 1): `0xb27c7fa15D25E880Ba4a9a508e166538e106F51e` — Phase 3 will swap onlyAgent modifier to ERC-8004 NFT-holder gate without redeploy.
+Agent address (initial, Phase 1): `0xb27c7fa15D25E880Ba4a9a508e166538e106F51e` — declared `immutable` in source per WR-02. Phase 3 will swap onlyAgent modifier to ERC-8004 NFT-holder gate **via redeploy** (immutable agent forces clean rotation, no in-place edit).
+
+**Historical Phase 1.0 deploy** (superseded by the hardening redeploy above; left for provenance):
+
+| Contract | Network | Address | Deploy Tx | Status |
+|----------|---------|---------|-----------|--------|
+| RatingRegistry (Phase 1.0 — superseded) | Mantle Sepolia (5003) | `0x0912bcBd57579179388cE9d4863032406dCfBe18` | [`0x4cba...16c2b`](https://sepolia.mantlescan.xyz/tx/0x4cba0abfe6aee6c69f4d59d1921ce8fdb3dffa154a0505746049ab71f0f16c2b) | superseded 2026-06-08 — bytecode lacks confidence bound + agent is mutable storage. Still on-chain and verified; do not point new code at this address. |
 
 Mainnet deploy: scheduled for Day 5 / Phase 5 per DEC-deployment-target-plan. The Sepolia artifact above clears the 20 Project Deployment Award technical bar today (2026-06-08).
 
-See `.planning/phases/01-lock-skeleton/01-03-DEPLOYMENT.md` for the full deployment record (block number, gas used, smoke-tx hash, verification log).
+See `.planning/phases/01-lock-skeleton/01-03-DEPLOYMENT.md` for the full deployment record of both deploys (block numbers, gas used, smoke-tx hashes, verification log).
 
 ## Scope Cuts Already Baked Into This Plan
 
