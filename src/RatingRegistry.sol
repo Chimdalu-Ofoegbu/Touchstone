@@ -22,8 +22,12 @@ contract RatingRegistry {
         address agentIdentity; // Phase 1: same as agent; Phase 3: ERC-8004 identity address
     }
 
-    /// @notice Address authorized to call publishRating. Phase 3 swaps the gate logic.
-    address public agent;
+    /// @notice Address authorized to call publishRating. Phase 3 swaps the gate logic
+    ///         via redeploy (not in-place rotation) — see contract-level natspec.
+    /// @dev `immutable` per WR-02: matches the documented "set once" intent, saves an
+    ///      SLOAD per publishRating, and prevents a future patch from silently adding
+    ///      a setAgent(...) rotation path.
+    address public immutable agent;
 
     /// @dev Subject => append-only Rating history.
     mapping(address => Rating[]) private _history;
@@ -46,6 +50,9 @@ contract RatingRegistry {
 
     error NotAgent();
     error InvalidGrade();
+    /// @notice Reverted by publishRating when confidence > 100 (per WR-01: confidence
+    ///         is a 0-100 percentage, not the full uint8 range).
+    error InvalidConfidence();
 
     /// @dev Phase 1 gate: simple address check. Phase 3: ERC-8004 NFT-holder check.
     modifier onlyAgent() {
@@ -64,9 +71,11 @@ contract RatingRegistry {
         emit RatingRequested(subject, msg.sender, block.timestamp);
     }
 
-    /// @notice Agent publishes a rating. Reverts InvalidGrade() if grade > 9.
-    /// @dev Per CON-publishRating-signature. Phase 1 stub: records & emits, no validation
-    ///      beyond the grade range. Phase 3 will add reasoningHash sourcing from IPFS.
+    /// @notice Agent publishes a rating. Reverts InvalidGrade() if grade > 9, or
+    ///         InvalidConfidence() if confidence > 100.
+    /// @dev Per CON-publishRating-signature. Phase 1 stub: records & emits, with
+    ///      grade and confidence bounds enforced on-chain. Phase 3 will add
+    ///      reasoningHash sourcing from IPFS.
     function publishRating(
         address subject,
         uint8 grade,
@@ -74,6 +83,7 @@ contract RatingRegistry {
         uint8 confidence
     ) external onlyAgent {
         if (grade > GradeEnum.MAX) revert InvalidGrade();
+        if (confidence > 100) revert InvalidConfidence();
         Rating memory r = Rating({
             subject: subject,
             grade: grade,
@@ -86,7 +96,13 @@ contract RatingRegistry {
         emit RatingPublished(subject, grade, reasoningHash, confidence, block.timestamp);
     }
 
-    /// @notice Returns the most recent Rating for `subject`, or a zero-valued Rating if none.
+    /// @notice Returns the most recent Rating for `subject`. If no rating has been
+    ///         published, returns a zero-valued Rating where `timestamp == 0` is the
+    ///         canonical "no rating" sentinel — `block.timestamp` is never 0 on a
+    ///         live chain or Foundry default (Foundry starts at timestamp 1).
+    /// @dev Per WR-03: don't rely on `subject == address(0)` as the sentinel —
+    ///      a legitimate publishRating(address(0), ...) call would create a false
+    ///      negative. `timestamp == 0` is the robust signal.
     function latestRating(address subject) external view returns (Rating memory) {
         Rating[] storage h = _history[subject];
         if (h.length == 0) {

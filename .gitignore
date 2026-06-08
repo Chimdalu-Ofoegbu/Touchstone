@@ -3,9 +3,10 @@ out/
 cache/
 broadcast/
 
-# Secrets
+# Secrets (per WR-04: cover .env.* family, e.g., .env.mantle / .env.production)
 .env
-.env.local
+.env.*
+!.env.example
 *.pem
 *.key
 
