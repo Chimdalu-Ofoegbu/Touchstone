@@ -29,18 +29,20 @@
 
 ## Accumulated Context
 
-### Locked Decisions (13, spec-asserted)
+### Locked Decisions (18 total: 13 spec-asserted + 5 added at Phase 1 discovery 2026-06-07)
 
-Listed in `.planning/PROJECT.md` under `<decisions>`. Two were modified at planning time per user timeline_override:
+Listed in `.planning/PROJECT.md` under `<decisions>`. Three modified or added at planning time per user timeline_override; five added at Phase 1 discovery lock:
 - **DEC-five-deterministic-risk-dimensions → FOUR.** Governance/custodian dimension dropped per DEC-scope-cut-sequence #3.
 - **DEC-scope-cut-sequence applied proactively** for cuts #1, #3, #4 (not just contingency).
+- **DEC-subject-set-locked:** USDY + cmETH + FBTC (cmETH replaces spec's mETH — Mantle-native variant).
+- **DEC-erc8004-canonical-addresses:** Identity `0x8004A169...432`, Reputation `0x8004BAa1...b63` — both live on Mantle Mainnet, reference deployment contingency eliminated.
+- **DEC-historical-proof-case:** Elixir deUSD collapse (2025-11-03/06). USDe Oct 11 flash depeg as backup.
+- **DEC-deployment-target-plan:** Sepolia for iteration through Day 4, Mainnet for ship Day 5.
+- **DEC-ipfs-provider-web3storage:** web3.storage chosen over Pinata.
 
-### Open Discovery Items (resolve in Phase 1)
+### Phase 1 Discovery — RESOLVED 2026-06-07
 
-1. **Mantle availability + addresses** for USDY, mETH, fBTC, MI4, Ethena USDe + relevant lending markets. Output: confirmed three-subject selection.
-2. **ERC-8004 status on Mantle.** Are canonical Identity and Reputation Registries deployed? If not, reference deployment plan.
-3. **2025 failure selection** for historical-downgrade proof. Verify specifics before committing (tokenized-yield depeg, synthetic-dollar depeg, lending bad-debt, or RWA custodian failure).
-4. **Per-track prize allocation** if Mantle has published it.
+All four open discovery items closed by parallel research; findings in `.planning/phases/01-lock-skeleton/RESEARCH.md` and locked above. Phase 1 Track A (verification) is complete — Day 1 effort drops to Track B only: deploy the verified `RatingRegistry.sol` skeleton with stub `requestRating → publishRating` on Mantle Sepolia to clear the 20 Project Deployment Award bar.
 
 ### Risks Tracked
 
@@ -53,10 +55,10 @@ Listed in `.planning/PROJECT.md` under `<decisions>`. Two were modified at plann
 
 ### Open Todos
 
-- [ ] Phase 1 — execute Phase-0 discovery and skeleton deployment (see ROADMAP Phase 1).
-- [ ] User: confirm IPFS pinning provider (web3.storage vs Pinata) before Phase 3.
+- [ ] Phase 1 Track B — deploy verified RatingRegistry.sol skeleton to Mantle Sepolia (Track A discovery complete).
 - [ ] User: pick light vs dark variant of editorial aesthetic before Phase 4 (DEC-aesthetic-direction-editorial — "pick one and execute completely").
-- [ ] User: confirm whether contract goes on Mantle Mainnet or Testnet for ship.
+- [x] ~~User: confirm IPFS pinning provider~~ → web3.storage locked 2026-06-07 (DEC-ipfs-provider-web3storage).
+- [x] ~~User: confirm Mainnet vs Testnet for ship~~ → Sepolia iterate, Mainnet ship locked 2026-06-07 (DEC-deployment-target-plan).
 
 ### Blockers
 
@@ -64,8 +66,8 @@ None. Intel marked READY (no blockers, no competing variants).
 
 ## Session Continuity
 
-- **Last session:** 2026-06-07 — Planning artifacts generated from intel by `gsd-roadmapper` under `new-project-from-ingest` mode with `timeline_override` compressing 7 spec phases to 5 working-day phases.
-- **Next session:** `/gsd-plan-phase 1` to decompose Phase 1 into executable plans.
+- **Last session:** 2026-06-07 — Planning artifacts generated from intel by `gsd-roadmapper`; Phase 1 discovery research executed by `gsd-phase-researcher` (RESEARCH.md written); user locked 5 Phase 1 decisions (subjects, ERC-8004 addresses, historical case, deployment plan, IPFS provider).
+- **Next session:** `/gsd-plan-phase 1` to decompose Phase 1 Track B (skeleton deploy) into executable plans. Track A discovery already complete.
 - **Artifacts written this session:**
   - `.planning/PROJECT.md`
   - `.planning/REQUIREMENTS.md`

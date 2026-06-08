@@ -51,7 +51,7 @@ Public `requestRating(address subject)` callable by anyone emits `RatingRequeste
 - Agent: TypeScript/Node with `RatingRequested` event listener.
 - Frontend: Next.js + Tailwind core utility classes only.
 - LLM: Claude.
-- Storage: IPFS via web3.storage or Pinata.
+- Storage: IPFS via web3.storage (locked — see DEC-ipfs-provider-web3storage).
 
 Source: `Touchstone Project.md` §3.3 + `Touchstone UI-UX Prompt.md` Tech constraints.
 
@@ -72,6 +72,21 @@ Ordered scope-cut sequence under time pressure: (1) drop live Reputation Registr
 
 ### DEC-ship-core-minimum
 Ship-core floor: three subjects rated, deterministic scoring + LLM reasoning, ratings published on-chain under ERC-8004 identity with verifiable hashes, one historical-downgrade proof, three frontend screens (ratings terminal, rating detail, track record). Source: `Touchstone Project.md` §8.
+
+### DEC-subject-set-locked
+Three subjects to rate at ship: **USDY** (`0x5be26527e817998a7206475496fde1e68957c5a6` on Mantle), **cmETH** (`0xE6829d9a7ee3040e1276Fa75293Bde931859e8fA` on Mantle), **FBTC** (`0xC96dE26018A54D51c097160568752c4E3BD6C364` on Mantle). cmETH chosen over mETH because mETH on Mantle is a bridge wrapper — its TVL lives on Ethereum L1; cmETH is the Mantle-native restaked variant with real Mantle-side dynamics. USDe held back as substitute (had its own Oct 11 2025 flash depeg, would conflict with rating-it-ourselves narrative). Source: `.planning/phases/01-lock-skeleton/RESEARCH.md` + user lock 2026-06-07.
+
+### DEC-erc8004-canonical-addresses
+ERC-8004 canonical registries are live on Mantle Mainnet (deployed 2026-02-11). Use these addresses directly; do NOT deploy reference registries. **Identity Registry:** `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`. **Reputation Registry:** `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`. This collapses the section 11 contingency in `Touchstone Project.md`. Validation Registry address is Phase 3 lookup, not a Phase 1 blocker. Source: `.planning/phases/01-lock-skeleton/RESEARCH.md` + user lock 2026-06-07.
+
+### DEC-historical-proof-case
+**Elixir deUSD collapse, 2025-11-03 to 2025-11-06.** Pre-event signals reconstructable from Ethereum archival RPC (EVM-equivalent, not Mantle — acceptable for the proof). Every one of our four scoring dimensions would have flagged it pre-event: oracle integrity (xUSD oracle hardcoded $1.00 across Morpho/Euler/Elixir lending markets); collateral quality (65% xUSD concentration + circular collateralization); contract risk (private unlisted Morpho markets, 4.1x recursive leverage); liquidity (TVL discrepancy $520M claimed vs $160M actual, 12% yield premium over Aave baseline). Analyst CBB0FE published the leverage analysis 2025-10-28 — 6 days pre-failure. Backup case: USDe Oct 11 2025 flash depeg (in reserve, not built). Source: `.planning/phases/01-lock-skeleton/RESEARCH.md` + user lock 2026-06-07.
+
+### DEC-deployment-target-plan
+Iterate on **Mantle Sepolia (chain 5003)** through Days 1-4. Deploy ship artifact to **Mantle Mainnet (chain 5000)** on Day 5 with final code. Verification via Blockscout (`forge verify-contract --verifier blockscout --verifier-url https://explorer.mantle.xyz/api/`) — no API key required. Native MNT gas ~0.05 gwei; deploy cost <$1. Submission contains the Mainnet address. Source: `.planning/phases/01-lock-skeleton/RESEARCH.md` + user lock 2026-06-07.
+
+### DEC-ipfs-provider-web3storage
+**web3.storage** is the IPFS pinning provider for reasoning JSON. Picked over Pinata for simpler TS API and more generous free tier. Replaces "web3.storage or Pinata" optionality in DEC-tech-stack. Source: user lock 2026-06-07.
 
 </decisions>
 
