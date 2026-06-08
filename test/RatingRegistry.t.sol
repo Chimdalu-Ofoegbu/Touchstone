@@ -40,6 +40,9 @@ contract RatingRegistryTest is Test {
 
     /// 1-02-02 — Grade enum 0-9 maps AAA-D, reverts above 9.
     function test_publishRating_gradeRange() public {
+        // Boundary: grade == 0 (AAA) is allowed (lower-boundary symmetry per IN-04).
+        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(1)), 50);
+
         // Boundary: grade == 9 (D) is allowed.
         registry.publishRating(subject, GradeEnum.D, bytes32(uint256(2)), 50);
         RatingRegistry.Rating memory latest = registry.latestRating(subject);
@@ -48,6 +51,24 @@ contract RatingRegistryTest is Test {
         // Boundary: grade == 10 reverts.
         vm.expectRevert(RatingRegistry.InvalidGrade.selector);
         registry.publishRating(subject, 10, bytes32(uint256(3)), 50);
+    }
+
+    /// 1-02-02b — Confidence must be 0..100 (WR-01 fix).
+    function test_publishRating_confidenceRange() public {
+        // Boundary: confidence == 0 is allowed.
+        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(1)), 0);
+        // Boundary: confidence == 100 is allowed.
+        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(2)), 100);
+        RatingRegistry.Rating memory latest = registry.latestRating(subject);
+        assertEq(latest.confidence, uint8(100));
+
+        // Boundary: confidence == 101 reverts.
+        vm.expectRevert(RatingRegistry.InvalidConfidence.selector);
+        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(3)), 101);
+
+        // Boundary: confidence == 255 (uint8 max) reverts.
+        vm.expectRevert(RatingRegistry.InvalidConfidence.selector);
+        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(4)), 255);
     }
 
     /// 1-02-03 — requestRating emits RatingRequested for any caller (including non-agent).
@@ -60,11 +81,14 @@ contract RatingRegistryTest is Test {
 
     /// 1-02-04 — latestRating returns last published rating (and zero-valued struct when empty).
     function test_latestRating_returnsLast() public {
-        // Empty case: returns zero-valued Rating.
+        // Empty case: returns zero-valued Rating. Per WR-03, `timestamp == 0` is the
+        // canonical "no rating" sentinel (block.timestamp is never 0 on a live chain
+        // or Foundry default). Lead with the timestamp assertion; subject/grade asserts
+        // remain as additional integrity checks.
         RatingRegistry.Rating memory empty = registry.latestRating(subject);
+        assertEq(empty.timestamp, uint256(0));
         assertEq(empty.subject, address(0));
         assertEq(empty.grade, uint8(0));
-        assertEq(empty.timestamp, uint256(0));
 
         // Publish two ratings; latestRating must return the second.
         registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(1)), 90);
