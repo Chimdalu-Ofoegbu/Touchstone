@@ -19,3 +19,6 @@ export type { Band, BandResult } from "./dimensions/types.js";
 export { STATIC, STATIC_VERSION, staticFact } from "./subjects/static.js";
 export type { StaticSubject } from "./subjects/static.js";
 export { fetchUsdy } from "./subjects/usdy.js";
+export { fetchCmeth } from "./subjects/cmeth.js";
+export { fetchFbtc } from "./subjects/fbtc.js";
+export { ADAPTERS, getAdapter } from "./subjects/registry.js";
