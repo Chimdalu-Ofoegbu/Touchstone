@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseReasoningDocument } from "../src/schema";
+import { parseReasoningDocument } from "../src/schema.js";
 
 const validDoc = {
   schema_version: "1.0.0",

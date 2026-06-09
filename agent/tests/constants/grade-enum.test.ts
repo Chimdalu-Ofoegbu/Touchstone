@@ -4,7 +4,7 @@ import {
   GRADE_UINT8_TO_LETTER,
   GRADE_MAX,
   type GradeLetter,
-} from "../../src/constants/grade-enum";
+} from "../../src/constants/grade-enum.js";
 
 describe("[2-01-02] GradeEnum TS mirror of src/constants/GradeEnum.sol", () => {
   // Hard-assert each pair literally — if anyone renumbers without thinking,
