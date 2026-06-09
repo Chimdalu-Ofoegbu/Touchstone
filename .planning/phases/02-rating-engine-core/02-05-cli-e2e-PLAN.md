@@ -639,7 +639,7 @@ export function validateCitations(doc: ReasoningDocument, facts: SubjectFacts): 
 
     1. From the repository root, `cd agent`.
     2. `pnpm install` (or `npm install`).
-    3. Make sure the root project `.env` (one directory up — `../.env`) has `ANTHROPIC_API_KEY` set. The `pnpm rate` script loads it automatically via `tsx --env-file=../.env`. There is **no separate `agent/.env`** — root `.env` is the single source of secrets for the whole project (per CONTEXT D-code-context).
+    3. Make sure the root project `.env` (one directory up — `../.env`) has `ANTHROPIC_API_KEY` set. The `pnpm rate` script loads it automatically via `tsx --env-file=../.env`. There is **no separate `agent/.env`** — root `.env` is the single source of secrets for the whole project (per CONTEXT.md `<code_context>` section).
 
     ## Environment variables (all read from the root project `.env`)
 

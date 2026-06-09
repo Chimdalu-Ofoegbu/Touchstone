@@ -34,7 +34,7 @@ must_haves:
     - "GradeEnum TS mirror equals Solidity GradeEnum byte-for-byte (AAA=0..D=9, MAX=9)"
     - "ReasoningDocument zod schema rejects grade.uint8 > 9 and confidence > 100"
     - "ReasoningDocument zod schema enforces chain_id literal 5000 (D-05 lock)"
-    - "agent/package.json `rate` script loads the root project .env (via `tsx --env-file=../.env`) — single source of secrets for the whole project per CONTEXT D-code-context lock; no separate agent/.env file is scaffolded"
+    - "agent/package.json `rate` script loads the root project .env (via `tsx --env-file=../.env`) — single source of secrets for the whole project per CONTEXT.md `<code_context>` section; no separate agent/.env file is scaffolded"
   artifacts:
     - path: "agent/package.json"
       provides: "Workspace deps + pnpm rate script (per D-11, D-13)"
