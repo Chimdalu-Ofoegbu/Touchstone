@@ -38,7 +38,7 @@
   4. The engine can be invoked locally for any of the three subjects and returns a complete reasoning JSON (per-dimension scores + rationales + grade + confidence + overall rationale) matching the agreed schema.
 **Plans:** 5 plans
 - [x] 02-01-scaffold-PLAN.md — agent/ workspace, GradeEnum TS mirror, locked ReasoningDocument zod schema (REQ-01)
-- [ ] 02-02-subjects-PLAN.md — viem + Multicall3 + per-subject adapters (USDY, cmETH, FBTC) + versioned static facts (REQ-05)
+- [x] 02-02-subjects-PLAN.md — viem + Multicall3 + per-subject adapters (USDY, cmETH, FBTC) + versioned static facts (REQ-05)
 - [ ] 02-03-dimensions-PLAN.md — 4 banded scorers (collateral, contract, oracle, liquidity) + synthesize() combiner (REQ-01)
 - [ ] 02-04-claude-hash-PLAN.md — single-shot Anthropic tool-use synthesis + RFC 8785 JCS hash + 3 golden tests (REQ-01)
 - [ ] 02-05-cli-e2e-PLAN.md — rate() orchestrator + pnpm rate CLI + post-hoc citation validation + env-safety + human-verify (REQ-01, REQ-05)
