@@ -37,7 +37,7 @@
   3. Claude reasoning step synthesizes the four deterministic scores into a letter grade (AAA–D) and a per-dimension rationale where every claim names a specific data point (no generic statements).
   4. The engine can be invoked locally for any of the three subjects and returns a complete reasoning JSON (per-dimension scores + rationales + grade + confidence + overall rationale) matching the agreed schema.
 **Plans:** 5 plans
-- [ ] 02-01-scaffold-PLAN.md — agent/ workspace, GradeEnum TS mirror, locked ReasoningDocument zod schema (REQ-01)
+- [x] 02-01-scaffold-PLAN.md — agent/ workspace, GradeEnum TS mirror, locked ReasoningDocument zod schema (REQ-01)
 - [ ] 02-02-subjects-PLAN.md — viem + Multicall3 + per-subject adapters (USDY, cmETH, FBTC) + versioned static facts (REQ-05)
 - [ ] 02-03-dimensions-PLAN.md — 4 banded scorers (collateral, contract, oracle, liquidity) + synthesize() combiner (REQ-01)
 - [ ] 02-04-claude-hash-PLAN.md — single-shot Anthropic tool-use synthesis + RFC 8785 JCS hash + 3 golden tests (REQ-01)
