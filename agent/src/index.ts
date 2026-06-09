@@ -14,3 +14,8 @@ export type { ReasoningDocument } from "./schema.js";
 
 export type { SubjectId, Fact, SubjectFacts } from "./subjects/types.js";
 export type { Band, BandResult } from "./dimensions/types.js";
+
+// Wave 1 (Plan 2-02) — subject adapters + static facts.
+export { STATIC, STATIC_VERSION, staticFact } from "./subjects/static.js";
+export type { StaticSubject } from "./subjects/static.js";
+export { fetchUsdy } from "./subjects/usdy.js";
