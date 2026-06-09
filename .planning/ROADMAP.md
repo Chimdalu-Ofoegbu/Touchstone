@@ -26,8 +26,17 @@
   4. Skeleton `RatingRegistry.sol` is deployed on Mantle (Mainnet or Testnet), verified on Mantle Explorer, and exposes stub `requestRating` → stub `publishRating` callable on-chain — meeting the 20 Project Deployment Award technical bar.
 **Plans:** TBD
 
+### Phase 2: Rating Engine Core
+**Day:** 2 — 2026-06-09
+**Goal:** A standalone off-chain rating engine produces grades + reasoning for the three committed subjects, with deterministic and LLM steps inspectably separated.
+**Depends on:** Phase 1 (subject set, data sources).
+**Requirements:** REQ-01, REQ-05
+**Success Criteria** (what must be TRUE):
+  1. Engine ingests on-chain data (TVL and volatility, oracle config, collateral composition, holder concentration, verified contract source from Mantle Explorer) for each of the three committed subjects.
+  2. Four deterministic scoring modules (collateral quality, contract risk, oracle integrity, liquidity and stability) each emit a 0–100 score for each subject, implemented as code separate from the LLM step.
+  3. Claude reasoning step synthesizes the four deterministic scores into a letter grade (AAA–D) and a per-dimension rationale where every claim names a specific data point (no generic statements).
+  4. The engine can be invoked locally for any of the three subjects and returns a complete reasoning JSON (per-dimension scores + rationales + grade + confidence + overall rationale) matching the agreed schema.
 **Plans:** 5 plans
-Plans:
 - [ ] 02-01-scaffold-PLAN.md — agent/ workspace, GradeEnum TS mirror, locked ReasoningDocument zod schema (REQ-01)
 - [ ] 02-02-subjects-PLAN.md — viem + Multicall3 + per-subject adapters (USDY, cmETH, FBTC) + versioned static facts (REQ-05)
 - [ ] 02-03-dimensions-PLAN.md — 4 banded scorers (collateral, contract, oracle, liquidity) + synthesize() combiner (REQ-01)

@@ -31,7 +31,7 @@ progress:
 - Status: Hardened RatingRegistry deployed + verified on Mantle Sepolia at `0x54163E309f7C8108F7110B086F640882a97f3838`. Smoke requestRating transaction observed on-chain from non-agent wallet. 20 Project Deployment Award technical bar CLEARED.
 - Deployed (Sepolia canonical): `0x54163E309f7C8108F7110B086F640882a97f3838` (Phase 1 hardened — confidence bound + immutable agent). Historical Phase 1.0 deploy at `0x0912bcBd57579179388cE9d4863032406dCfBe18` superseded but left on-chain. See .planning/phases/01-lock-skeleton/01-03-DEPLOYMENT.md for both records.
 - Progress: 1/5 phases complete `[##        ] 1/5 phases complete (3/3 plans in Phase 1 + post-review polish)`
-- Next: /gsd-plan-phase 2 — Rating Engine Core (Day 2).
+- Next: /gsd-execute-phase 2 — Rating Engine Core (5 plans, 5 sequential waves; Day 2).
 
 ## Performance Metrics
 
