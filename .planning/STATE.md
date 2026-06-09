@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-last_updated: "2026-06-09T01:28:44.654Z"
+status: Executing Phase 02
+last_updated: "2026-06-09T03:16:07.785Z"
 progress:
-  total_phases: 4
+  total_phases: 5
   completed_phases: 1
-  total_plans: 3
+  total_plans: 8
   completed_plans: 3
-  percent: 100
+  percent: 38
 ---
 
 # STATE.md — Touchstone
@@ -20,11 +20,14 @@ progress:
 
 - **Project:** Touchstone
 - **Core value:** Credit-ratings agent for on-chain RWA assets on Mantle. Ingests risk data, scores deterministic dimensions, uses Claude to synthesize a letter grade (AAA–D) with cited rationale, publishes on-chain under an ERC-8004 identity with a verifiable reasoning hash. Moody's of the agentic economy.
-- **Current focus:** Phase 01 — lock-skeleton
+- **Current focus:** Phase 02 — rating-engine-core
 - **Ship target:** 2026-06-12 (user). Buffer: 2026-06-13. Official deadline: 2026-06-15.
 - **Today:** 2026-06-07.
 
 ## Current Position
+
+Phase: 02 (rating-engine-core) — EXECUTING
+Plan: 1 of 5
 
 - Phase: 1 — Lock + Skeleton COMPLETE 2026-06-08 (+ post-review hardening redeploy 2026-06-08)
 - Plan: 1-03 complete; Phase 1 closed. Post-phase polish (WR-01/WR-02/WR-03/WR-04 from 01-REVIEW.md) applied and redeployed to Sepolia.

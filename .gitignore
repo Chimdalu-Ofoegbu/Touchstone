@@ -3,6 +3,11 @@ out/
 cache/
 broadcast/
 
+# Node / TypeScript engine (Phase 2 agent/)
+node_modules/
+agent/out/
+agent/dist/
+
 # Secrets (per WR-04: cover .env.* family, e.g., .env.mantle / .env.production)
 .env
 .env.*

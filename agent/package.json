@@ -1,0 +1,33 @@
+{
+  "name": "@touchstone/agent",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./hash": "./src/hash.ts",
+    "./schema": "./src/schema.ts",
+    "./constants/grade-enum": "./src/constants/grade-enum.ts"
+  },
+  "scripts": {
+    "rate": "tsx --env-file=../.env src/cli.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:live": "RUN_LIVE=1 vitest run --reporter=verbose",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.102.0",
+    "canonicalize": "^3.0.0",
+    "viem": "^2.52.2",
+    "zod": "^4.4.3",
+    "zod-to-json-schema": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.22.4",
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.8"
+  }
+}
