@@ -9,7 +9,6 @@ files_modified:
   - agent/package.json
   - agent/tsconfig.json
   - agent/vitest.config.ts
-  - agent/.env.example
   - agent/src/index.ts
   - agent/src/constants/grade-enum.ts
   - agent/src/subjects/types.ts
@@ -18,7 +17,6 @@ files_modified:
   - agent/tests/constants/grade-enum.test.ts
   - agent/tests/schema.test.ts
   - agent/tests/_setup.ts
-  - agent/.gitignore
 autonomous: true
 requirements:
   - REQ-01
@@ -36,7 +34,7 @@ must_haves:
     - "GradeEnum TS mirror equals Solidity GradeEnum byte-for-byte (AAA=0..D=9, MAX=9)"
     - "ReasoningDocument zod schema rejects grade.uint8 > 9 and confidence > 100"
     - "ReasoningDocument zod schema enforces chain_id literal 5000 (D-05 lock)"
-    - "agent/.env.example references ANTHROPIC_API_KEY, MANTLE_RPC_URL, CLAUDE_MODEL — and NO other secrets"
+    - "agent/package.json `rate` script loads the root project .env (via `tsx --env-file=../.env`) — single source of secrets for the whole project per CONTEXT D-code-context lock; no separate agent/.env file is scaffolded"
   artifacts:
     - path: "agent/package.json"
       provides: "Workspace deps + pnpm rate script (per D-11, D-13)"
@@ -45,8 +43,6 @@ must_haves:
       provides: "ES2022 + NodeNext + strict TS config"
     - path: "agent/vitest.config.ts"
       provides: "Vitest config picking up tests/**/*.test.ts"
-    - path: "agent/.env.example"
-      provides: "Documented env keys — ANTHROPIC_API_KEY, MANTLE_RPC_URL, CLAUDE_MODEL=claude-opus-4-7"
     - path: "agent/src/constants/grade-enum.ts"
       provides: "uint8 mirror of src/constants/GradeEnum.sol (per D-12 schema)"
       contains: "export const GRADE_LETTER_TO_UINT8"
@@ -152,21 +148,22 @@ export function parseReasoningDocument(input: unknown): ReasoningDocument;
 <tasks>
 
 <task type="auto" tdd="true">
-  <name>Task 2-01-01: Scaffold agent package (package.json, tsconfig, vitest, .env.example, .gitignore)</name>
-  <files>agent/package.json, agent/tsconfig.json, agent/vitest.config.ts, agent/.env.example, agent/.gitignore</files>
+  <name>Task 2-01-01: Scaffold agent package (package.json, tsconfig, vitest) wired to root .env</name>
+  <files>agent/package.json, agent/tsconfig.json, agent/vitest.config.ts</files>
   <read_first>
     - .planning/phases/02-rating-engine-core/02-RESEARCH.md (§6 scaffold, §11 export contract, §9 vitest config, §10 secrets-handling)
     - .planning/phases/02-rating-engine-core/02-PATTERNS.md (Secrets handling section)
-    - .planning/phases/02-rating-engine-core/02-CONTEXT.md (D-02 viem, D-11 model, D-13 canonicalize, Claude's Discretion section)
-    - .gitignore (root — already covers .env.*)
-    - .env (do not commit; confirm MANTLE_RPC_URL pattern already exists)
+    - .planning/phases/02-rating-engine-core/02-CONTEXT.md (D-02 viem, D-11 model claude-opus-4-8, D-13 canonicalize, Claude's Discretion section, and `<code_context>` "Phase 2 adds ANTHROPIC_API_KEY to this file [root .env]" — the engine reads ONE .env, the root project one)
+    - .gitignore (root — already covers .env and .env.* with !.env.example exception; engine deps need no new gitignore rules)
+    - .env (root — already populated with PRIVATE_KEY, MANTLE_RPC_URL, MANTLE_SEPOLIA_RPC_URL, MANTLE_EXPLORER_KEY, ANTHROPIC_API_KEY; do NOT commit, do NOT modify in this task)
+    - .env.example (root — current template Phase-1 secrets; this task does NOT extend it. ANTHROPIC_API_KEY + CLAUDE_MODEL are agent-private and documented in agent/README.md instead, written in Plan 05.)
   </read_first>
   <behavior>
     - Test 1: `pnpm --filter agent build` exits 0 (verifies tsconfig + package.json + tsc compile path)
     - Test 2: `agent/package.json` declares `viem@^2.52.2`, `@anthropic-ai/sdk@^0.102.0`, `canonicalize@^3.0.0`, `zod@^4.4.3`, `zod-to-json-schema@^3.24.0`, `vitest@^4.1.8`, `tsx@^4.22.4`, `typescript@^5.6.0`, `@types/node@^22.0.0`
-    - Test 3: `agent/package.json` `scripts.rate === "tsx src/cli.ts"`, `scripts.test === "vitest run"`, `scripts.typecheck === "tsc --noEmit"`, `scripts.build === "tsc --noEmit"`
-    - Test 4: `agent/.env.example` contains the lines `ANTHROPIC_API_KEY=`, `MANTLE_RPC_URL=https://rpc.mantle.xyz`, `CLAUDE_MODEL=claude-opus-4-7` and does NOT contain `PRIVATE_KEY` (T-2-01 mitigation: engine never signs in Phase 2)
-    - Test 5: `agent/.gitignore` (or root .gitignore confirmed) covers `agent/.env`, `agent/.env.*`, `agent/out/`, `agent/node_modules/`, `agent/dist/`
+    - Test 3: `agent/package.json` `scripts.rate === "tsx --env-file=../.env src/cli.ts"` (loads root .env per CONTEXT lock), `scripts.test === "vitest run"`, `scripts.typecheck === "tsc --noEmit"`, `scripts.build === "tsc --noEmit"`
+    - Test 4: NO `agent/.env`, NO `agent/.env.example`, NO `agent/.gitignore` files are created — root .gitignore already covers `agent/.env` (any `.env` anywhere) and `agent/node_modules/` is handled by viem/vitest defaults. The root `.env` is the single source of secrets per CONTEXT `<code_context>`.
+    - Test 5: T-2-01 mitigation proven by absence — confirm `agent/.env*` does NOT exist on disk after this task (the engine reads root `.env` via `tsx --env-file=../.env`; no agent-local secret file is needed).
   </behavior>
   <action>
     Create `agent/package.json` exactly:
@@ -183,7 +180,7 @@ export function parseReasoningDocument(input: unknown): ReasoningDocument;
         "./constants/grade-enum": "./src/constants/grade-enum.ts"
       },
       "scripts": {
-        "rate": "tsx src/cli.ts",
+        "rate": "tsx --env-file=../.env src/cli.ts",
         "test": "vitest run",
         "test:watch": "vitest",
         "test:live": "RUN_LIVE=1 vitest run --reporter=verbose",
@@ -241,30 +238,13 @@ export function parseReasoningDocument(input: unknown): ReasoningDocument;
     });
     ```
 
-    Create `agent/.env.example`:
-    ```
-    # Anthropic — required for Claude synthesis (D-11)
-    ANTHROPIC_API_KEY=
-    # Mantle Mainnet RPC — used by viem publicClient (D-02, D-05)
-    MANTLE_RPC_URL=https://rpc.mantle.xyz
-    # Claude model — default per D-11 (user override 2026-06-09); swap to claude-opus-4-8, claude-sonnet-4-6, or claude-opus-4-7 here
-    CLAUDE_MODEL=claude-opus-4-7
-    ```
-    Do NOT include `PRIVATE_KEY` — engine never signs in Phase 2 (T-2-01 mitigation per RESEARCH §10).
+    **DO NOT** create `agent/.env`, `agent/.env.example`, or `agent/.gitignore`. Per CONTEXT `<code_context>` lock: the engine reads the **root project `.env`** (where Phase 1 secrets already live and `ANTHROPIC_API_KEY` has been added). The `tsx --env-file=../.env` flag in the `rate` script above loads it from `agent/` at runtime.
 
-    Create `agent/.gitignore`:
-    ```
-    node_modules/
-    dist/
-    out/
-    .env
-    .env.*
-    !.env.example
-    ```
+    Rationale: a separate `agent/.env` would (a) duplicate the API key in two files (violates CONTEXT's "this file" single-source language), (b) introduce a desync risk when secrets rotate, (c) require maintaining a second `.gitignore` ruleset. The root `.gitignore` already covers any `.env` anywhere in the tree (rule `.env`) and any `.env.*` (rule `.env.*`), with `!.env.example` keeping the existing root template tracked.
 
-    Install deps: from inside `agent/`, run `pnpm install` (or `npm install` if pnpm is unavailable — Claude's discretion per CONTEXT). Confirm package-lock or pnpm-lock is created. Commit lockfile.
+    Install deps: from inside `agent/`, run `pnpm install` (or `npm install` if pnpm is unavailable — Claude's discretion per CONTEXT). Confirm `pnpm-lock.yaml` (or `package-lock.json`) is created. Commit lockfile.
 
-    Per D-11 (user override 2026-06-09): default model alias `claude-opus-4-7` — locks the strongest-reasoning Claude 4.x tier for citation-grounded rationale. Env-var swaps to `claude-opus-4-8`, `claude-sonnet-4-6`, or back to `claude-opus-4-7` remain supported via `CLAUDE_MODEL`. Original RESEARCH Open Q3 recommended sonnet-4-5; this lock supersedes that recommendation.
+    Per D-11 (user override 2026-06-09): default model alias `claude-opus-4-8` — newest Opus, strongest reasoning + cited-rationale quality. Locked literal in `agent/src/claude/synthesize.ts` (written in Plan 04 Wave 3). Env-var swaps to `claude-opus-4-7`, `claude-sonnet-4-6`, or `claude-sonnet-4-5` remain supported via `CLAUDE_MODEL` (root `.env`). Original RESEARCH Open Q3 recommended sonnet-4-5; this lock supersedes that recommendation.
   </action>
   <verify>
     <automated>cd agent && pnpm install --frozen-lockfile && pnpm typecheck</automated>
@@ -275,15 +255,14 @@ export function parseReasoningDocument(input: unknown): ReasoningDocument;
     - `grep -c '"@anthropic-ai/sdk": "\^0.102' agent/package.json` returns 1
     - `grep -c '"canonicalize": "\^3.0' agent/package.json` returns 1
     - `grep -c '"zod": "\^4.4' agent/package.json` returns 1
-    - `grep -c '"rate": "tsx src/cli.ts"' agent/package.json` returns 1
-    - `grep -c 'ANTHROPIC_API_KEY=' agent/.env.example` returns 1
-    - `grep -c 'MANTLE_RPC_URL=https://rpc.mantle.xyz' agent/.env.example` returns 1
-    - `grep -c 'CLAUDE_MODEL=claude-opus-4-7' agent/.env.example` returns 1
-    - `grep -c 'PRIVATE_KEY' agent/.env.example` returns 0 (T-2-01 mitigation)
-    - `grep -c '\.env\.\*' agent/.gitignore` returns 1 OR root .gitignore already covers it
+    - `grep -c '"rate": "tsx --env-file=../.env src/cli.ts"' agent/package.json` returns 1 (loads root .env)
+    - `test ! -f agent/.env` returns 0 (no agent-local secrets file — T-2-01 mitigation by absence)
+    - `test ! -f agent/.env.example` returns 0 (no agent-local env template — single source of secrets is root .env)
+    - `test ! -f agent/.gitignore` returns 0 (no agent-local gitignore — root .gitignore covers `.env`, `.env.*`, with `!.env.example` exception)
+    - `git check-ignore -q agent/.env` returns 0 (root .gitignore correctly ignores the path, in case it ever materializes)
     - `cd agent && pnpm typecheck` exits 0
   </acceptance_criteria>
-  <done>agent/ workspace compiles with strict TS; deps installed; .env.example documents the 3 env keys and contains no PRIVATE_KEY reference; lockfile committed.</done>
+  <done>agent/ workspace compiles with strict TS; deps installed; pnpm `rate` script loads root `.env` via `tsx --env-file=../.env`; no agent-local env or gitignore files created (root project files already cover both concerns); lockfile committed.</done>
 </task>
 
 <task type="auto" tdd="true">
@@ -624,7 +603,7 @@ export function parseReasoningDocument(input: unknown): ReasoningDocument;
       ],
       overall_rationale: "USDY presents low risk across all four dimensions.",
       generated_at: "2026-06-09T00:00:00Z",
-      claude_model: "claude-opus-4-7",
+      claude_model: "claude-opus-4-8",
       ingest_block: 75000000,
     };
 
@@ -723,7 +702,7 @@ export function parseReasoningDocument(input: unknown): ReasoningDocument;
 
 | Threat ID | Category | Component | Disposition | Mitigation Plan |
 |-----------|----------|-----------|-------------|-----------------|
-| T-2-01 | Information Disclosure | `agent/.env.example`, `agent/.gitignore` | mitigate | `agent/.env.example` lists ONLY `ANTHROPIC_API_KEY` / `MANTLE_RPC_URL` / `CLAUDE_MODEL` — NO `PRIVATE_KEY`. `agent/.gitignore` covers `.env`, `.env.*`, `out/`. Acceptance criterion `grep -c 'PRIVATE_KEY' agent/.env.example == 0` enforces. |
+| T-2-01 | Information Disclosure | secrets handling (root `.env` only) | mitigate | Engine reads root project `.env` via `tsx --env-file=../.env` in pnpm `rate` script — no agent-local `.env` or `.env.example` is created (mitigation by absence). Root `.gitignore` already covers `.env`, `.env.*` with `!.env.example` exception. Acceptance criteria `test ! -f agent/.env`, `test ! -f agent/.env.example`, `git check-ignore -q agent/.env` enforce. Engine code never reads `process.env.PRIVATE_KEY` (Plan 05 env-safety test asserts this in agent/src/). |
 | T-2-02 | Tampering (Integrity, Phase 3 break) | `agent/src/schema.ts` | mitigate | zod schema caps `grade.uint8 ∈ [0,9]`, `confidence ∈ [30,100]`, `chain_id == 5000`, `dimensions.length == 4`, plus `schema_version == "1.0.0"`. Mirrors RatingRegistry's `InvalidGrade` and `InvalidConfidence` reverts. Tests 2-3-4-5-6-8 in Task 2-01-03 enforce. |
 </threat_model>
 

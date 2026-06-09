@@ -107,7 +107,9 @@
 **User's choice:** claude-sonnet-4-5 (recommended).
 **Notes:** Env var swap path included anyway (negligible cost) so Opus can be A/B'd at demo time.
 
-> **Override 2026-06-09 (post-planning):** User changed the locked default to `claude-opus-4-7`. Reason: rationale depth + citation quality outweigh the ~8-15s per-rating latency at demo scale (3 ratings ≈ $0.30 total). CONTEXT.md D-11 and all PLAN.md files updated to reflect the new lock. Sonnet 4.5 remains a valid env-var swap target.
+> **Override 2026-06-09 (post-planning):** User changed the locked default twice in succession on the same day: first `claude-sonnet-4-5` → `claude-opus-4-7` (rationale depth + citation quality outweigh latency at demo scale), then `claude-opus-4-7` → `claude-opus-4-8` (newest Opus is the logical lock). CONTEXT.md D-11, all PLAN.md files, VALIDATION, PATTERNS, and `.env` updated to reflect the final lock on `claude-opus-4-8`. Sonnet 4.5, Sonnet 4.6, and Opus 4.7 all remain valid env-var swap targets via `CLAUDE_MODEL`.
+
+> **Companion change 2026-06-09:** Plans 01 and 05 were also restructured so the engine reads the **root project `.env`** (where `ANTHROPIC_API_KEY` already lives per CONTEXT `<code_context>`). The originally-scaffolded `agent/.env.example`, `agent/.env`, and `agent/.gitignore` are no longer created — root .gitignore already covers `.env` and `.env.*` anywhere in the tree, and the `tsx --env-file=../.env` flag in the `rate` script loads root .env at runtime. Single source of secrets for the whole project.
 
 ---
 

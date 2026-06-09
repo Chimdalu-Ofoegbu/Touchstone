@@ -68,7 +68,7 @@ Live RPC + Anthropic integration is gated by `RUN_LIVE=1` and runs once per wave
 - [ ] `agent/package.json` — declares `vitest`, `viem`, `@anthropic-ai/sdk`, `canonicalize`, `zod`, `tsx` deps + `pnpm rate` script
 - [ ] `agent/tsconfig.json` — strict, ESNext, NodeNext, no `any`
 - [ ] `agent/vitest.config.ts` — globals, environment node, `include: ['src/**/*.test.ts', 'tests/**/*.test.ts']`
-- [ ] `agent/.env.example` — `ANTHROPIC_API_KEY=`, `MANTLE_RPC_URL=https://rpc.mantle.xyz`, `CLAUDE_MODEL=claude-opus-4-7`
+- [ ] NO `agent/.env.example` is created — engine reads root project `.env` via `tsx --env-file=../.env` in pnpm `rate` script (see Plan 01 Task 2-01-01). `ANTHROPIC_API_KEY`, `MANTLE_RPC_URL`, `CLAUDE_MODEL` all live in root `.env`. Locked CLAUDE_MODEL default in code (Plan 04): `claude-opus-4-8`.
 - [ ] `agent/src/constants/grade-enum.ts` — Solidity-mirror with locked-byte assertion
 - [ ] `agent/src/schema.ts` — zod schema for ReasoningDocument; `parseReasoningDocument()` export
 - [ ] `agent/tests/conftest-style helpers under tests/_setup.ts` — mock Anthropic client + mock RPC fixtures

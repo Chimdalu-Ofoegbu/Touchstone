@@ -25,8 +25,8 @@ Roles use the phase-specific vocabulary requested: scaffold / adapter / scorer /
 | `agent/package.json` | scaffold | n/a | NEW-PATTERN | none |
 | `agent/tsconfig.json` | scaffold | n/a | NEW-PATTERN | none |
 | `agent/vitest.config.ts` | scaffold | n/a | NEW-PATTERN | none |
-| `agent/.env.example` | scaffold | n/a | NEW-PATTERN | none |
-| `agent/.gitignore` (or rely on root) | scaffold | n/a | NEW-PATTERN (root `.gitignore` already covers `.env.*`) | partial |
+| ~~`agent/.env.example`~~ — REMOVED per 2026-06-09 override | n/a | n/a | engine reads root `.env` via `tsx --env-file=../.env` | n/a |
+| ~~`agent/.gitignore`~~ — REMOVED per 2026-06-09 override | n/a | n/a | root `.gitignore` already covers `.env`/`.env.*` everywhere | n/a |
 | `agent/src/index.ts` | scaffold (barrel) | re-export | NEW-PATTERN (see RESEARCH §11) | none |
 | `agent/src/rpc.ts` | rpc | outbound HTTPS | NEW-PATTERN (RESEARCH §1) | none |
 | `agent/src/multicall.ts` | rpc | request-response (batched) | NEW-PATTERN (RESEARCH §2) | none |
@@ -225,7 +225,7 @@ The remaining files have no existing analog in the repo. The planner should lift
 | `agent/package.json` | RESEARCH §6 | Pin viem ^2.52.2, @anthropic-ai/sdk ^0.102.0, canonicalize ^3.0.0, zod ^4.4.3, zod-to-json-schema ^3.24.0, vitest ^4.1.8, tsx ^4.22.4. `"type": "module"`, scripts: `rate`, `test`, `test:live`, `typecheck`. Exports map per RESEARCH §6. |
 | `agent/tsconfig.json` | RESEARCH §6 | ES2022, module NodeNext, strict, esModuleInterop, skipLibCheck. |
 | `agent/vitest.config.ts` | RESEARCH §9 | Default Vitest config; pick up `tests/**/*.test.ts`; `RUN_LIVE=1` gates `.live.test.ts` files. |
-| `agent/.env.example` | RESEARCH §9 Wave 0 | `ANTHROPIC_API_KEY=`, `MANTLE_RPC_URL=`, `CLAUDE_MODEL=claude-opus-4-7`. NO `PRIVATE_KEY` (engine never signs). |
+| ~~`agent/.env.example`~~ | n/a | REMOVED per 2026-06-09 override. Engine reads root project `.env` (already populated with `ANTHROPIC_API_KEY`, `MANTLE_RPC_URL`, etc.) via `tsx --env-file=../.env` in pnpm `rate` script. Locked CLAUDE_MODEL default `claude-opus-4-8` lives in code (Plan 04 `synthesize.ts`). |
 | `agent/src/index.ts` | RESEARCH §11 | Barrel: re-export `rate`, `computeReasoningHash`, `canonicalizeDoc`, grade constants, all four BANDS tables, types. |
 | `agent/src/rpc.ts` | RESEARCH §1 | `createPublicClient({ chain: mantle, transport: http(MANTLE_RPC_URL, {retryCount: 2, timeout: 15_000}), batch: { multicall: true }})`. Single exported `publicClient`. |
 | `agent/src/multicall.ts` | RESEARCH §2 | `multiread(reads, blockNumber?)` wraps `publicClient.multicall({ contracts, blockNumber, allowFailure: true })`. Returns `ReadResult[]` with `{ ok, value | error, label }`. The `label` drives missing_facts and citations. |
@@ -286,7 +286,7 @@ The remaining files have no existing analog in the repo. The planner should lift
 
 **Rule:** after zod validation of Claude's tool args, OVERWRITE these three fields engine-side. Never trust Claude with `generated_at`/`claude_model`/`ingest_block`. Specifically:
 - `generated_at` ← derived from `publicClient.getBlock({ blockNumber: ingestBlock }).timestamp`, formatted to a single locked ISO 8601 form (pick: with or without millis — RESEARCH §8 leaves the choice to planner; recommend WITHOUT millis for fewest divergence vectors).
-- `claude_model` ← `process.env.CLAUDE_MODEL ?? "claude-opus-4-7"`.
+- `claude_model` ← `process.env.CLAUDE_MODEL ?? "claude-opus-4-8"`.
 - `ingest_block` ← `Number(blockNumber)` (asserts `< 2^53`).
 
 ### Testing divergence (Solidity forge ↔ TypeScript vitest)
@@ -297,13 +297,13 @@ The remaining files have no existing analog in the repo. The planner should lift
 
 **Do NOT carry forward:** forge idioms, `vm.*` calls, event-assertion patterns. Use vitest's `vi.spyOn` / `vi.mock` for mocking and `expect().toThrow(...)` for revert-equivalents.
 
-### Secrets handling (applies to: `.env.example`, `rpc.ts`, error handling everywhere)
+### Secrets handling (applies to: root `.env` loading + `rpc.ts` + error handling everywhere)
 
-**Source:** Phase 1 WR-04 (root `.gitignore` covers `.env.*`); RESEARCH §10 threat-model rows on secret leakage.
+**Source:** Phase 1 WR-04 (root `.gitignore` covers `.env` and `.env.*` with `!.env.example` exception); RESEARCH §10 threat-model rows on secret leakage; 2026-06-09 user override consolidating secrets to root `.env` only.
 
 **Rules:**
-- `agent/.env.example` is committed; `agent/.env` is NOT (covered by root `.env.*` glob).
-- Engine reads ONLY `ANTHROPIC_API_KEY`, `MANTLE_RPC_URL`, `CLAUDE_MODEL`. Never reads `PRIVATE_KEY` (engine does not sign in Phase 2).
+- **No agent-local env files exist.** Engine reads root project `.env` via `tsx --env-file=../.env` in the pnpm `rate` script. Root `.env` already contains `ANTHROPIC_API_KEY` (added 2026-06-09), `MANTLE_RPC_URL`, `MANTLE_SEPOLIA_RPC_URL`, `MANTLE_EXPLORER_KEY`, `PRIVATE_KEY` (Phase 1).
+- Engine reads ONLY `ANTHROPIC_API_KEY`, `MANTLE_RPC_URL`, `CLAUDE_MODEL`. Never reads `PRIVATE_KEY` (engine does not sign in Phase 2 — Plan 05 env-safety test asserts `process.env.PRIVATE_KEY` is not referenced in `agent/src/`).
 - Any `viem` error message that contains `MANTLE_RPC_URL` MUST be redacted before being written to JSON or stdout: `error.message.replace(MANTLE_RPC_URL, "[redacted]")`. Wrap this in a shared helper in `agent/src/rpc.ts`.
 
 ### Static-fact citation source convention (applies to: `subjects/static.ts`, `claude/prompt.ts`, schema)

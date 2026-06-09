@@ -36,7 +36,7 @@ must_haves:
     - "`pnpm rate NotARealSubject` exits non-zero with a clear error (T-2-07: CLI rejects arbitrary identifiers)"
     - "Post-hoc validation rejects a ReasoningDocument whose citation.source.address is not in SubjectFacts AND not 'static_config'"
     - "No file in the repo (excluding .env and .env.local — gitignored) contains a literal ANTHROPIC_API_KEY value"
-    - "README.md documents the 3 env keys and the `pnpm rate` invocation"
+    - "agent/README.md documents the 3 env keys (read from the ROOT project .env) and the `pnpm rate` invocation; explicitly states there is NO agent-local .env file"
   artifacts:
     - path: "agent/src/rate.ts"
       provides: "rate() library entrypoint (Phase 3 imports this)"
@@ -394,7 +394,7 @@ export function validateCitations(doc: ReasoningDocument, facts: SubjectFacts): 
             rationale: "r [1]", citations: [{ id: 1, label: "static", value: "v", source: { address: "static_config", function: "f", block_number: 0 }, evidence: "e" }],
           }],
           overall_rationale: "x",
-          generated_at: "2026-06-09T00:00:00Z", claude_model: "claude-opus-4-7", ingest_block: 0,
+          generated_at: "2026-06-09T00:00:00Z", claude_model: "claude-opus-4-8", ingest_block: 0,
         };
         expect(() => validateCitations(doc, facts)).toThrow(/fabricated address/);
       });
@@ -591,6 +591,7 @@ export function validateCitations(doc: ReasoningDocument, facts: SubjectFacts): 
     ```ts
     import { describe, it, expect } from "vitest";
     import { execSync } from "node:child_process";
+    import { existsSync } from "node:fs";
     import { resolve } from "node:path";
 
     function gitTrackedSearch(pattern: string): string {
@@ -614,10 +615,15 @@ export function validateCitations(doc: ReasoningDocument, facts: SubjectFacts): 
         const matches = gitTrackedSearch("ANTHROPIC_API_KEY=sk-");
         expect(matches).toBe("");
       });
-      it("agent/.env.example does not contain PRIVATE_KEY (T-2-01)", () => {
-        const matches = gitTrackedSearch("PRIVATE_KEY");
-        // PRIVATE_KEY MAY appear in foundry .env conventions but MUST NOT appear in agent/.env.example.
-        const lines = matches.split("\n").filter(l => l.includes("agent/.env.example"));
+      it("no agent-local .env files exist (root .env is the single source)", () => {
+        const repoRoot = resolve(__dirname, "../..");
+        // T-2-01 mitigation by absence — root .env is loaded via tsx --env-file=../.env (Plan 01).
+        expect(existsSync(resolve(repoRoot, "agent/.env"))).toBe(false);
+        expect(existsSync(resolve(repoRoot, "agent/.env.example"))).toBe(false);
+      });
+      it("agent/src never reads PRIVATE_KEY from process.env (T-2-01: engine never signs)", () => {
+        const matches = gitTrackedSearch("process\\.env\\.PRIVATE_KEY");
+        const lines = matches.split("\n").filter(l => l.startsWith("agent/src/"));
         expect(lines).toEqual([]);
       });
     });
@@ -633,17 +639,17 @@ export function validateCitations(doc: ReasoningDocument, facts: SubjectFacts): 
 
     1. From the repository root, `cd agent`.
     2. `pnpm install` (or `npm install`).
-    3. Copy `.env.example` to `.env` and fill in your `ANTHROPIC_API_KEY`.
+    3. Make sure the root project `.env` (one directory up — `../.env`) has `ANTHROPIC_API_KEY` set. The `pnpm rate` script loads it automatically via `tsx --env-file=../.env`. There is **no separate `agent/.env`** — root `.env` is the single source of secrets for the whole project (per CONTEXT D-code-context).
 
-    ## Environment variables
+    ## Environment variables (all read from the root project `.env`)
 
     | Variable | Required | Default | Purpose |
     |----------|----------|---------|---------|
     | `ANTHROPIC_API_KEY` | yes (live runs) | — | Anthropic Messages API; needed for non-`--mock` invocations. |
     | `MANTLE_RPC_URL` | no | `https://rpc.mantle.xyz` | viem publicClient RPC. Set this to a private RPC (Alchemy/Infura on Mantle) for production. |
-    | `CLAUDE_MODEL` | no | `claude-opus-4-7` | Model alias (locked per D-11 user override 2026-06-09). Swap to `claude-opus-4-8`, `claude-sonnet-4-6`, or `claude-opus-4-7` if you want different speed/cost/quality. |
+    | `CLAUDE_MODEL` | no | `claude-opus-4-8` | Model alias (locked per D-11 user override 2026-06-09 — newest Opus). Swap to `claude-opus-4-7`, `claude-sonnet-4-6`, or `claude-sonnet-4-5` if you want different speed/cost/quality. To use the locked default, leave the `CLAUDE_MODEL` line commented out in `.env` (an empty `CLAUDE_MODEL=` line breaks the engine's `??` fallback). |
 
-    > Do NOT add `PRIVATE_KEY` to `agent/.env`. The engine never signs in Phase 2.
+    > Phase 2 engine never reads `PRIVATE_KEY`. It is only used by Foundry / Phase 3 publisher.
 
     ## Usage
 
@@ -717,7 +723,7 @@ export function validateCitations(doc: ReasoningDocument, facts: SubjectFacts): 
     Two checks the human performs after `pnpm test` is green:
 
     1. **Live RPC + live Anthropic — one live rating per subject.**
-       Set `ANTHROPIC_API_KEY` (real key) in `agent/.env`.
+       Confirm `ANTHROPIC_API_KEY` is set in the **root project `.env`** (one directory up from `agent/`). The `pnpm rate` script loads it automatically via `tsx --env-file=../.env`.
        From inside `agent/`:
        ```
        pnpm rate USDY
@@ -757,7 +763,7 @@ export function validateCitations(doc: ReasoningDocument, facts: SubjectFacts): 
 
 | Threat ID | Category | Component | Disposition | Mitigation Plan |
 |-----------|----------|-----------|-------------|-----------------|
-| T-2-01 | Information Disclosure | env files + error paths | mitigate | `env-safety.test.ts` git-grep proves no `sk-ant-` or `ANTHROPIC_API_KEY=sk-` patterns in tracked files; `agent/.env.example` does not contain `PRIVATE_KEY`. Error-path scrubbing happens in `claude/synthesize.ts` (Wave 3). |
+| T-2-01 | Information Disclosure | root `.env` loading + error paths | mitigate | `env-safety.test.ts` git-grep proves no `sk-ant-` or `ANTHROPIC_API_KEY=sk-` patterns in tracked files; asserts no `agent/.env*` files exist on disk (single source = root `.env`, gitignored); asserts no `process.env.PRIVATE_KEY` reference in `agent/src/`. Error-path scrubbing happens in `claude/synthesize.ts` (Wave 3). |
 | T-2-07 | Input Validation | `cli.ts` + `validateCitations()` | mitigate | CLI hard-coded allow-list `SUBJECT_IDS = new Set(["USDY", "cmETH", "FBTC"])`; unknown subjects → exit 2 with "Unknown subject" message. Post-hoc `validateCitations(doc, facts)` throws "fabricated address" if Claude cites an address not in the SubjectFacts allow-list. Both behaviors covered by tests. |
 </threat_model>
 

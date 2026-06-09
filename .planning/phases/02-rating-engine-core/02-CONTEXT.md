@@ -42,7 +42,7 @@ A standalone off-chain TypeScript/Node rating engine that, when invoked locally 
   - The locked output schema (via tool-use, see D-10).
   Returns: per-dimension rationale (with citations), overall rationale, synthesized letter grade, confidence. ONE roundtrip, easier to mock in tests, Phase 4 streaming can chunk by `dimensions[i]` section.
 - **D-10 (Schema enforcement):** Anthropic **tool-use** with strict JSON schema. Define a `submit_rating` tool whose `input_schema` mirrors the reasoning JSON (see D-12). `tool_choice: {type: "tool", name: "submit_rating"}` forces the call. The validated tool args become the canonical reasoning object. On schema-mismatch (rare but possible), retry once with the validation error in the system prompt; then surface the failure.
-- **D-11 (Model):** `claude-opus-4-7`. **[User override 2026-06-09 — was `claude-sonnet-4-5`.]** Strongest reasoning + cited-rationale quality in the Claude 4.x family at lock time; the demo prioritizes rationale depth over per-call latency/cost (3 ratings per demo, ~$0.05–$0.10 per rating ≈ $0.30/run total). Configurable via `CLAUDE_MODEL` env var so a runtime swap to `claude-opus-4-8` (newer Opus), `claude-sonnet-4-6` (cheaper, faster), or back to `claude-sonnet-4-5` is one variable change. The default in code MUST be `claude-opus-4-7`.
+- **D-11 (Model):** `claude-opus-4-8`. **[User overrides 2026-06-09: (1) `claude-sonnet-4-5` → `claude-opus-4-7`, (2) `claude-opus-4-7` → `claude-opus-4-8` — newest Opus is the logical default.]** Newest Opus tier — best reasoning + cited-rationale quality at lock time; the demo prioritizes rationale depth over per-call latency/cost (3 ratings per demo, ~$0.05–$0.10 per rating ≈ $0.30/run total). Configurable via `CLAUDE_MODEL` env var so a runtime swap to `claude-opus-4-7` (prior Opus), `claude-sonnet-4-6` (cheaper, faster), or `claude-sonnet-4-5` (cheapest) is one variable change. The default in code MUST be `claude-opus-4-8`.
 
 ### Reasoning JSON Schema + Hash Stability
 - **D-12 (Schema):** The locked reasoning JSON shape. Phase 3 hashes this; Phase 4 verifies it. Field names are LOCKED — any change is a breaking change for downstream phases.
@@ -73,7 +73,7 @@ type ReasoningDocument = {
   overall_rationale: string;
   // Provenance — required so Phase 4 can show this in the verify UI
   generated_at: string; // ISO 8601 UTC
-  claude_model: string; // e.g., "claude-opus-4-7"
+  claude_model: string; // e.g., "claude-opus-4-8"
   ingest_block: number; // the Mantle Mainnet block all RPC reads were pinned to
 };
 ```

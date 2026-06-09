@@ -32,7 +32,7 @@ objective: |
 must_haves:
   truths:
     - "Claude call uses tool_choice {type: 'tool', name: 'submit_rating'} (D-10 forced tool-use)"
-    - "Default model is claude-opus-4-7; CLAUDE_MODEL env var overrides (D-11)"
+    - "Default model is claude-opus-4-8; CLAUDE_MODEL env var overrides (D-11)"
     - "After Claude returns, engine OVERWRITES generated_at, claude_model, ingest_block (T-2-06 hash determinism)"
     - "computeReasoningHash(doc) === viem.keccak256(viem.toBytes(canonicalize(doc)))"
     - "Running synthesizeRating + computeReasoningHash twice on identical inputs yields byte-identical canonical string AND identical hash"
@@ -131,7 +131,7 @@ export const submitRatingTool: {
 
 agent/src/claude/synthesize.ts:
 ```ts
-export const MODEL: string; // process.env.CLAUDE_MODEL ?? "claude-opus-4-7"
+export const MODEL: string; // process.env.CLAUDE_MODEL ?? "claude-opus-4-8"
 export type SynthesizeRatingInput = {
   subject: SubjectFacts;
   scores: { collateral: BandResult; contract: BandResult; oracle: BandResult; liquidity: BandResult };
@@ -226,7 +226,7 @@ export function computeReasoningHash(doc: ReasoningDocument): `0x${string}`;
       ],
       overall_rationale: "O",
       generated_at: "2026-06-09T00:00:00Z",
-      claude_model: "claude-opus-4-7",
+      claude_model: "claude-opus-4-8",
       ingest_block: 75000000,
     });
 
@@ -269,7 +269,7 @@ export function computeReasoningHash(doc: ReasoningDocument): `0x${string}`;
       ingest_block: 75000000,
       generated_at: "2026-06-09T00:00:00Z",
       grade: { uint8: 2, letter: "A" },
-      claude_model: "claude-opus-4-7",
+      claude_model: "claude-opus-4-8",
       overall_rationale: "O",
       confidence: 85,
       dimensions: [
@@ -290,7 +290,7 @@ export function computeReasoningHash(doc: ReasoningDocument): `0x${string}`;
       dimensions: docA.dimensions,
       overall_rationale: "O",
       generated_at: "2026-06-09T00:00:00Z",
-      claude_model: "claude-opus-4-7",
+      claude_model: "claude-opus-4-8",
       ingest_block: 75000000,
     })));
 
@@ -347,7 +347,7 @@ export function computeReasoningHash(doc: ReasoningDocument): `0x${string}`;
     - Test 5: `synthesizeRating({...with mock client returning valid tool_use args...})` returns ReasoningDocument whose `generated_at`, `claude_model`, `ingest_block` were OVERWRITTEN by the engine (NOT taken from Claude's response)
     - Test 6: `synthesizeRating({...with mock client returning INVALID tool_use args on first try, VALID on second...})` returns ReasoningDocument (one-retry path D-10)
     - Test 7: `synthesizeRating({...with mock client returning INVALID args twice...})` throws with a message that does NOT include the API key (T-2-01)
-    - Test 8: Default model is claude-opus-4-7 when CLAUDE_MODEL not set; respects CLAUDE_MODEL when set (D-11)
+    - Test 8: Default model is claude-opus-4-8 when CLAUDE_MODEL not set; respects CLAUDE_MODEL when set (D-11)
     - Test 9: `synthesizeRating({...mock returns text_block, no tool_use...})` throws "Claude did not call submit_rating"
     - Test 10 (T-2-07 prompt-injection): if a Fact.value contains a control character or newline, the prompt builder strips/escapes it so the injection doesn't reach the model context as an "instruction" line — assert the produced prompt has no raw control characters
   </behavior>
@@ -460,7 +460,7 @@ export function computeReasoningHash(doc: ReasoningDocument): `0x${string}`;
     import type { BandResult } from "../dimensions/types";
     import type { GradeLetter } from "../constants/grade-enum";
 
-    export const MODEL = process.env.CLAUDE_MODEL ?? "claude-opus-4-7";
+    export const MODEL = process.env.CLAUDE_MODEL ?? "claude-opus-4-8";
 
     /** Minimal client interface — full Anthropic client OR a test mock satisfies this. */
     export type AnthropicClientLike = {
@@ -672,7 +672,7 @@ export function computeReasoningHash(doc: ReasoningDocument): `0x${string}`;
         });
         // Claude returned "9999-12-31T23:59:59Z" — engine MUST override it.
         expect(doc.generated_at.startsWith("9999")).toBe(false);
-        // Engine sets claude_model from process.env.CLAUDE_MODEL ?? "claude-opus-4-7"
+        // Engine sets claude_model from process.env.CLAUDE_MODEL ?? "claude-opus-4-8"
         expect(doc.claude_model).toBe(MODEL);
         // Engine sets ingest_block from input.subject.ingestBlock
         expect(doc.ingest_block).toBe(subject.ingestBlock);
@@ -749,7 +749,7 @@ export function computeReasoningHash(doc: ReasoningDocument): `0x${string}`;
     - `grep -c 'tool_choice' agent/src/claude/synthesize.ts` returns ≥ 1
     - `grep -c 'type: "tool"' agent/src/claude/synthesize.ts` returns ≥ 1
     - `grep -c 'name: "submit_rating"' agent/src/claude/synthesize.ts` returns ≥ 1
-    - `grep -c 'claude-opus-4-7' agent/src/claude/synthesize.ts` returns ≥ 1
+    - `grep -c 'claude-opus-4-8' agent/src/claude/synthesize.ts` returns ≥ 1
     - `grep -c '<facts' agent/src/claude/prompt.ts` returns ≥ 1
     - `grep -c 'u0000-' agent/src/claude/prompt.ts` returns >= 1 (T-2-05 control-char strip)
     - `cd agent && pnpm test -- tests/claude.mock.test.ts` exits 0
@@ -919,7 +919,7 @@ export function computeReasoningHash(doc: ReasoningDocument): `0x${string}`;
 
 <output>
 After completion, create `.planning/phases/02-rating-engine-core/02-04-SUMMARY.md` documenting:
-- Final `claude_model` default (`claude-opus-4-7` per D-11)
+- Final `claude_model` default (`claude-opus-4-8` per D-11)
 - One-retry behavior confirmation
 - Hash determinism test results (the hex hashes for each subject golden run)
 - Any deviation from RESEARCH §4/§5/§8

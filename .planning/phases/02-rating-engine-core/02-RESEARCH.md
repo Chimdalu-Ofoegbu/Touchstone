@@ -1,6 +1,8 @@
 # Phase 2: Rating Engine Core — Research
 
-> **⚠ Post-research user override (2026-06-09):** D-11 model lock changed from `claude-sonnet-4-5` to `claude-opus-4-7`. References below to `claude-sonnet-4-5` reflect the research-time analysis and should be read as historical. Treat CONTEXT.md and the PLAN.md files as the authoritative current lock.
+> **⚠ Post-research user overrides (2026-06-09):**
+> - D-11 model lock changed `claude-sonnet-4-5` → `claude-opus-4-7` → `claude-opus-4-8` (final: newest Opus is the logical default).
+> - Engine reads the **root project `.env`** (where Phase 1 secrets live + `ANTHROPIC_API_KEY`); Plans 01 and 05 were updated to drop the originally-scaffolded `agent/.env.example` / `agent/.gitignore` — the engine loads root `.env` via `tsx --env-file=../.env` in the `rate` script. References below to `claude-sonnet-4-5`, `claude-opus-4-7`, `agent/.env.example` reflect the research-time analysis and should be read as historical. Treat CONTEXT.md and the PLAN.md files as the authoritative current lock.
 
 **Researched:** 2026-06-09
 **Domain:** Off-chain TypeScript rating engine — viem on Mantle Mainnet (chain 5000), Multicall3 batched ingest, deterministic banded scoring, Anthropic tool-use forced output, RFC 8785 JCS canonical hash for on-chain `bytes32`.
