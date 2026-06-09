@@ -60,3 +60,9 @@ export type {
   AnthropicClientLike,
   SynthesizeRatingInput,
 } from "./claude/synthesize.js";
+
+// Wave 4 (Plan 2-05) — rate() orchestrator + CLI entrypoint.
+// rate() is the locked Phase 3 import surface; Phase 3's RatingRequested
+// listener calls rate() to drive the off-chain pipeline.
+export { rate, validateCitations } from "./rate.js";
+export type { RateOptions, RateResult } from "./rate.js";
