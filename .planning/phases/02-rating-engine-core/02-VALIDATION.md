@@ -68,7 +68,7 @@ Live RPC + Anthropic integration is gated by `RUN_LIVE=1` and runs once per wave
 - [ ] `agent/package.json` — declares `vitest`, `viem`, `@anthropic-ai/sdk`, `canonicalize`, `zod`, `tsx` deps + `pnpm rate` script
 - [ ] `agent/tsconfig.json` — strict, ESNext, NodeNext, no `any`
 - [ ] `agent/vitest.config.ts` — globals, environment node, `include: ['src/**/*.test.ts', 'tests/**/*.test.ts']`
-- [ ] `agent/.env.example` — `ANTHROPIC_API_KEY=`, `MANTLE_RPC_URL=https://rpc.mantle.xyz`, `CLAUDE_MODEL=claude-sonnet-4-5`
+- [ ] `agent/.env.example` — `ANTHROPIC_API_KEY=`, `MANTLE_RPC_URL=https://rpc.mantle.xyz`, `CLAUDE_MODEL=claude-opus-4-7`
 - [ ] `agent/src/constants/grade-enum.ts` — Solidity-mirror with locked-byte assertion
 - [ ] `agent/src/schema.ts` — zod schema for ReasoningDocument; `parseReasoningDocument()` export
 - [ ] `agent/tests/conftest-style helpers under tests/_setup.ts` — mock Anthropic client + mock RPC fixtures

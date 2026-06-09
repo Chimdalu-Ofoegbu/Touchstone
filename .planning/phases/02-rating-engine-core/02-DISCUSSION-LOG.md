@@ -107,6 +107,8 @@
 **User's choice:** claude-sonnet-4-5 (recommended).
 **Notes:** Env var swap path included anyway (negligible cost) so Opus can be A/B'd at demo time.
 
+> **Override 2026-06-09 (post-planning):** User changed the locked default to `claude-opus-4-7`. Reason: rationale depth + citation quality outweigh the ~8-15s per-rating latency at demo scale (3 ratings ≈ $0.30 total). CONTEXT.md D-11 and all PLAN.md files updated to reflect the new lock. Sonnet 4.5 remains a valid env-var swap target.
+
 ---
 
 ## Reasoning JSON Schema + Hash Stability

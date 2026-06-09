@@ -394,7 +394,7 @@ export function validateCitations(doc: ReasoningDocument, facts: SubjectFacts): 
             rationale: "r [1]", citations: [{ id: 1, label: "static", value: "v", source: { address: "static_config", function: "f", block_number: 0 }, evidence: "e" }],
           }],
           overall_rationale: "x",
-          generated_at: "2026-06-09T00:00:00Z", claude_model: "claude-sonnet-4-5", ingest_block: 0,
+          generated_at: "2026-06-09T00:00:00Z", claude_model: "claude-opus-4-7", ingest_block: 0,
         };
         expect(() => validateCitations(doc, facts)).toThrow(/fabricated address/);
       });
@@ -641,7 +641,7 @@ export function validateCitations(doc: ReasoningDocument, facts: SubjectFacts): 
     |----------|----------|---------|---------|
     | `ANTHROPIC_API_KEY` | yes (live runs) | — | Anthropic Messages API; needed for non-`--mock` invocations. |
     | `MANTLE_RPC_URL` | no | `https://rpc.mantle.xyz` | viem publicClient RPC. Set this to a private RPC (Alchemy/Infura on Mantle) for production. |
-    | `CLAUDE_MODEL` | no | `claude-sonnet-4-5` | Model alias. Swap to `claude-opus-4-7` or `claude-sonnet-4-6` if rationale quality needs tuning (per D-11). |
+    | `CLAUDE_MODEL` | no | `claude-opus-4-7` | Model alias (locked per D-11 user override 2026-06-09). Swap to `claude-opus-4-8`, `claude-sonnet-4-6`, or `claude-opus-4-7` if you want different speed/cost/quality. |
 
     > Do NOT add `PRIVATE_KEY` to `agent/.env`. The engine never signs in Phase 2.
 

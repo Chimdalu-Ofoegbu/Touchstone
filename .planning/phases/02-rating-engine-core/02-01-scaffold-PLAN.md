@@ -46,7 +46,7 @@ must_haves:
     - path: "agent/vitest.config.ts"
       provides: "Vitest config picking up tests/**/*.test.ts"
     - path: "agent/.env.example"
-      provides: "Documented env keys — ANTHROPIC_API_KEY, MANTLE_RPC_URL, CLAUDE_MODEL=claude-sonnet-4-5"
+      provides: "Documented env keys — ANTHROPIC_API_KEY, MANTLE_RPC_URL, CLAUDE_MODEL=claude-opus-4-7"
     - path: "agent/src/constants/grade-enum.ts"
       provides: "uint8 mirror of src/constants/GradeEnum.sol (per D-12 schema)"
       contains: "export const GRADE_LETTER_TO_UINT8"
@@ -165,7 +165,7 @@ export function parseReasoningDocument(input: unknown): ReasoningDocument;
     - Test 1: `pnpm --filter agent build` exits 0 (verifies tsconfig + package.json + tsc compile path)
     - Test 2: `agent/package.json` declares `viem@^2.52.2`, `@anthropic-ai/sdk@^0.102.0`, `canonicalize@^3.0.0`, `zod@^4.4.3`, `zod-to-json-schema@^3.24.0`, `vitest@^4.1.8`, `tsx@^4.22.4`, `typescript@^5.6.0`, `@types/node@^22.0.0`
     - Test 3: `agent/package.json` `scripts.rate === "tsx src/cli.ts"`, `scripts.test === "vitest run"`, `scripts.typecheck === "tsc --noEmit"`, `scripts.build === "tsc --noEmit"`
-    - Test 4: `agent/.env.example` contains the lines `ANTHROPIC_API_KEY=`, `MANTLE_RPC_URL=https://rpc.mantle.xyz`, `CLAUDE_MODEL=claude-sonnet-4-5` and does NOT contain `PRIVATE_KEY` (T-2-01 mitigation: engine never signs in Phase 2)
+    - Test 4: `agent/.env.example` contains the lines `ANTHROPIC_API_KEY=`, `MANTLE_RPC_URL=https://rpc.mantle.xyz`, `CLAUDE_MODEL=claude-opus-4-7` and does NOT contain `PRIVATE_KEY` (T-2-01 mitigation: engine never signs in Phase 2)
     - Test 5: `agent/.gitignore` (or root .gitignore confirmed) covers `agent/.env`, `agent/.env.*`, `agent/out/`, `agent/node_modules/`, `agent/dist/`
   </behavior>
   <action>
@@ -247,8 +247,8 @@ export function parseReasoningDocument(input: unknown): ReasoningDocument;
     ANTHROPIC_API_KEY=
     # Mantle Mainnet RPC — used by viem publicClient (D-02, D-05)
     MANTLE_RPC_URL=https://rpc.mantle.xyz
-    # Claude model — default per D-11; swap to claude-opus-4-7 or claude-sonnet-4-6 here
-    CLAUDE_MODEL=claude-sonnet-4-5
+    # Claude model — default per D-11 (user override 2026-06-09); swap to claude-opus-4-8, claude-sonnet-4-6, or claude-opus-4-7 here
+    CLAUDE_MODEL=claude-opus-4-7
     ```
     Do NOT include `PRIVATE_KEY` — engine never signs in Phase 2 (T-2-01 mitigation per RESEARCH §10).
 
@@ -264,7 +264,7 @@ export function parseReasoningDocument(input: unknown): ReasoningDocument;
 
     Install deps: from inside `agent/`, run `pnpm install` (or `npm install` if pnpm is unavailable — Claude's discretion per CONTEXT). Confirm package-lock or pnpm-lock is created. Commit lockfile.
 
-    Per D-11: default model alias `claude-sonnet-4-5` (NOT `claude-opus-4-7` or `claude-sonnet-4-6`) — user lock. RESEARCH Open Q3 explicitly recommends keeping 4.5.
+    Per D-11 (user override 2026-06-09): default model alias `claude-opus-4-7` — locks the strongest-reasoning Claude 4.x tier for citation-grounded rationale. Env-var swaps to `claude-opus-4-8`, `claude-sonnet-4-6`, or back to `claude-opus-4-7` remain supported via `CLAUDE_MODEL`. Original RESEARCH Open Q3 recommended sonnet-4-5; this lock supersedes that recommendation.
   </action>
   <verify>
     <automated>cd agent && pnpm install --frozen-lockfile && pnpm typecheck</automated>
@@ -278,7 +278,7 @@ export function parseReasoningDocument(input: unknown): ReasoningDocument;
     - `grep -c '"rate": "tsx src/cli.ts"' agent/package.json` returns 1
     - `grep -c 'ANTHROPIC_API_KEY=' agent/.env.example` returns 1
     - `grep -c 'MANTLE_RPC_URL=https://rpc.mantle.xyz' agent/.env.example` returns 1
-    - `grep -c 'CLAUDE_MODEL=claude-sonnet-4-5' agent/.env.example` returns 1
+    - `grep -c 'CLAUDE_MODEL=claude-opus-4-7' agent/.env.example` returns 1
     - `grep -c 'PRIVATE_KEY' agent/.env.example` returns 0 (T-2-01 mitigation)
     - `grep -c '\.env\.\*' agent/.gitignore` returns 1 OR root .gitignore already covers it
     - `cd agent && pnpm typecheck` exits 0
@@ -624,7 +624,7 @@ export function parseReasoningDocument(input: unknown): ReasoningDocument;
       ],
       overall_rationale: "USDY presents low risk across all four dimensions.",
       generated_at: "2026-06-09T00:00:00Z",
-      claude_model: "claude-sonnet-4-5",
+      claude_model: "claude-opus-4-7",
       ingest_block: 75000000,
     };
 

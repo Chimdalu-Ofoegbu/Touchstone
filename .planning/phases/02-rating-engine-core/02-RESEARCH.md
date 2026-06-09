@@ -1,5 +1,7 @@
 # Phase 2: Rating Engine Core — Research
 
+> **⚠ Post-research user override (2026-06-09):** D-11 model lock changed from `claude-sonnet-4-5` to `claude-opus-4-7`. References below to `claude-sonnet-4-5` reflect the research-time analysis and should be read as historical. Treat CONTEXT.md and the PLAN.md files as the authoritative current lock.
+
 **Researched:** 2026-06-09
 **Domain:** Off-chain TypeScript rating engine — viem on Mantle Mainnet (chain 5000), Multicall3 batched ingest, deterministic banded scoring, Anthropic tool-use forced output, RFC 8785 JCS canonical hash for on-chain `bytes32`.
 **Confidence:** HIGH on stack/wiring/hash; MEDIUM on per-subject readable surface (proxies verified, dimension-level field mapping confirmed only for ERC-20 base surface, deeper protocol-specific reads need single-pass adapter coding).
