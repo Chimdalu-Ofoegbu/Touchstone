@@ -18,11 +18,24 @@ const CLI = resolve(__dirname, "../src/cli.ts");
 const AGENT_ROOT = resolve(__dirname, "..");
 const OUT_DIR = resolve(AGENT_ROOT, "out");
 
+// Cross-platform: invoke tsx via its plain-Node ESM entrypoint (no shell)
+// so paths containing spaces are passed through argv unmangled. Using
+// `node node_modules/tsx/dist/cli.mjs <CLI>` avoids the Windows .CMD
+// wrapper which spawnSync cannot execute without shell:true (and shell:true
+// breaks on paths containing spaces). spawnSync with shell:false treats
+// every array element as a single argv entry — no quoting hazard.
+const TSX_ESM = resolve(
+  AGENT_ROOT,
+  "node_modules",
+  "tsx",
+  "dist",
+  "cli.mjs",
+);
+
 function run(args: string[]) {
-  return spawnSync("npx", ["tsx", CLI, ...args], {
+  return spawnSync(process.execPath, [TSX_ESM, CLI, ...args], {
     encoding: "utf8",
     cwd: AGENT_ROOT,
-    shell: process.platform === "win32",
   });
 }
 

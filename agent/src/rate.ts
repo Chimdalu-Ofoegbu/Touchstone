@@ -273,8 +273,11 @@ export async function rate(
 
   let outPath: string | undefined;
   if (opts.writeToFs) {
-    const dir =
-      opts.outDir ?? resolve(process.cwd(), "agent", "out", subject);
+    // Default output dir: <cwd>/out/<SUBJECT>/. The CLI is launched from
+    // inside agent/ (per `pnpm rate` script), so the on-disk path is
+    // agent/out/<SUBJECT>/<block>.json — matching the README documented path.
+    // Tests inject `outDir` to control the location precisely.
+    const dir = opts.outDir ?? resolve(process.cwd(), "out", subject);
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
     outPath = resolve(dir, String(doc.ingest_block) + ".json");
     // Write the canonical string so the on-disk bytes match what was hashed.

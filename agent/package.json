@@ -10,7 +10,7 @@
     "./constants/grade-enum": "./src/constants/grade-enum.ts"
   },
   "scripts": {
-    "rate": "tsx --env-file=../.env src/cli.ts",
+    "rate": "tsx --env-file-if-exists=../.env src/cli.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:live": "RUN_LIVE=1 vitest run --reporter=verbose",
