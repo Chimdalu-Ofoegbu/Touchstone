@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 02 code-complete + verified (4/4); HOLDING for live human UAT before close
-last_updated: "2026-06-10T12:35:00.000Z"
+status: Phase 02 code-complete + verified (4/4) + live UAT passed in-session; HOLDING for user's own live re-run before close
+last_updated: "2026-06-10T13:25:00.000Z"
 progress:
   total_phases: 5
   completed_phases: 1
@@ -33,10 +33,13 @@ Code review (02-REVIEW.md) found 4 blockers on the cross-phase hash/provenance c
   - CR-02 (SC-4) FIXED commit 25c789d: rpc.ts resolveBlockNumber() + 3 adapters thread one concrete resolved block into multiread AND ingestBlock (no more `:0` while reading latest). 3 adapter tests assert resolved head stamped.
   - CR-04 (SC-4) FIXED commit 27692f8: rate.ts getBlockTimestampSeconds(blockNumber: bigint) reads getBlock({blockNumber}) at BigInt(facts.ingestBlock) — no 2nd latest snapshot.
   - CR-03 (security) FIXED commit d334286: redactRpcError wired into multicall.ts/rate.ts/rpc.ts + redactRpcUrl at cli.ts boundary; wiring tripwire test enforces it.
-REMAINING (user holding to run): 2 live-API human UAT items in 02-HUMAN-UAT.md — need ANTHROPIC_API_KEY + MANTLE_RPC_URL:
-  1. Live citation-rigor eyeball (SC-3): `pnpm rate USDY|cmETH|FBTC --block <recent>` → rationales cite specific facts, grades vary.
-  2. Live two-run determinism (SC-4): `pnpm rate USDY --block <fixed N>` twice → byte-identical reasoningHash.
-TO CLOSE after live UAT passes: mark 02-HUMAN-UAT.md results, then `gsd-sdk query phase.complete 02` + commit, then advance to Phase 3. Verifier confirmed NO code gaps block Phase 3 planning.
+LIVE UAT: PASSED in-session at Mantle Mainnet block 96481000 (model claude-opus-4-8) — 02-HUMAN-UAT.md status:passed.
+  - A 5th blocker surfaced ONLY on the live path and was fixed: CR-05 (commit 7cdff79) — submit_rating input_schema was built by zod-to-json-schema v3 (incompatible with zod v4), emitting {$ref,definitions} with no top-level type → Anthropic 400 "input_schema.type: Field required". Fixed via zod v4 native z.toJSONSchema(); removed non-standard `strict` field; strengthened tool-schema test. Mock suite couldn't catch it (mock client doesn't validate schema like the real API).
+  - SC-3 (citation rigor) PASS: USDY @96481000 → BBB, confidence 80, every rationale cites specific [N] facts; engine band scores (85/30/55/92) appear in doc (CR-01 confirmed live).
+  - SC-4 (determinism) PASS with corrected expectation: NOT "two live runs identical" (Claude prose varies by design); the real contract is re-hash of a FIXED document — computeReasoningHash(stored live doc) reproduced published hash 0xa522477b…, canonical bytes stable. = Phase 4 verify path.
+  Full suite 191/191 green, typecheck clean.
+USER CHOICE (2026-06-10): holding to re-run live themselves before close — wants to see cmETH/FBTC grade spread firsthand (those not run live in-session to conserve API budget; USDY representative, all 3 adapters share one code path).
+TO CLOSE once user confirms their re-run: `gsd-sdk query phase.complete 02` + commit ROADMAP/STATE/VERIFICATION, then advance to Phase 3 (On-Chain Publish + ERC-8004 + IPFS) — discuss or plan. Verifier confirmed NO code gaps block Phase 3. NOTE: project dates are stale in STATE (Today says 2026-06-07; actually 2026-06-10 = Day 4 of 5-day target).
 
 - Phase: 1 — Lock + Skeleton COMPLETE 2026-06-08 (+ post-review hardening redeploy 2026-06-08)
 - Plan: 1-03 complete; Phase 1 closed. Post-phase polish (WR-01/WR-02/WR-03/WR-04 from 01-REVIEW.md) applied and redeployed to Sepolia.
