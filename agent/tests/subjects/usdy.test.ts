@@ -13,6 +13,13 @@ vi.mock("../../src/multicall.js", () => ({
   multiread: vi.fn(),
 }));
 
+// CR-02: the adapter resolves chain head via resolveBlockNumber when no block
+// is supplied. Mock it to a fixed fake head so the no-block path is hermetic
+// (no live RPC) and asserts the resolved block is stamped — never 0.
+vi.mock("../../src/rpc.js", () => ({
+  resolveBlockNumber: vi.fn(async (b?: bigint) => b ?? 88_000_000n),
+}));
+
 import { multiread } from "../../src/multicall.js";
 import { fetchUsdy } from "../../src/subjects/usdy.js";
 
@@ -97,9 +104,25 @@ describe("[2-02-02 USDY] adapter", () => {
     expect(callArgs[1]).toBe(75_000_000n);
   });
 
-  it("ingestBlock is 0 when blockNumber is omitted", async () => {
+  it("resolves chain head and stamps THAT block (never 0) when blockNumber is omitted (CR-02)", async () => {
     vi.mocked(multiread).mockResolvedValue(usdyMulticallSuccess);
+    // No --block: resolveBlockNumber (mocked to 88_000_000n) supplies a
+    // concrete head; the adapter must stamp it, not 0 (the D-04 latest leak).
     const facts = await fetchUsdy();
-    expect(facts.ingestBlock).toBe(0);
+    expect(facts.ingestBlock).toBe(88_000_000);
+    // multiread received the resolved concrete block, not undefined/latest.
+    const callArgs = vi.mocked(multiread).mock.calls[0];
+    expect(callArgs[1]).toBe(88_000_000n);
+    // every onchain Fact carries the same resolved block.
+    const onchain = [
+      ...facts.collateral,
+      ...facts.contract,
+      ...facts.oracle,
+      ...facts.liquidity,
+    ].filter((f) => f.source.kind === "onchain");
+    for (const f of onchain) {
+      const src = f.source as Extract<typeof f.source, { kind: "onchain" }>;
+      expect(src.blockNumber).toBe(88_000_000);
+    }
   });
 });

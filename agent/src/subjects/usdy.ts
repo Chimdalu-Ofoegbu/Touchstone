@@ -13,6 +13,7 @@
 import { erc20Abi, parseAbi, type Address } from "viem";
 import type { SubjectFacts, Fact } from "./types.js";
 import { multiread, type Read } from "../multicall.js";
+import { resolveBlockNumber } from "../rpc.js";
 import { STATIC, staticFact } from "./static.js";
 
 const ADDR: Address = STATIC.USDY.address;
@@ -59,9 +60,13 @@ export async function fetchUsdy(blockNumber?: bigint): Promise<SubjectFacts> {
       label: "USDY owner()",
     },
   ];
-  const r1 = await multiread(round1, blockNumber);
+  // CR-02 / D-04: resolve a concrete block ONCE so the reads below and the
+  // ingestBlock provenance stamp pin to the exact same snapshot. A `latest`
+  // read with a block-0 stamp is the leak this eliminates.
+  const resolvedBlockNumber = await resolveBlockNumber(blockNumber);
+  const r1 = await multiread(round1, resolvedBlockNumber);
 
-  const ingestBlock = blockNumber !== undefined ? Number(blockNumber) : 0;
+  const ingestBlock = Number(resolvedBlockNumber);
 
   const onchainFact = (
     label: string,

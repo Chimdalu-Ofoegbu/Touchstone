@@ -24,6 +24,23 @@ export const publicClient: PublicClient = createPublicClient({
 });
 
 /**
+ * Resolve a concrete block number to pin an ingest against. CR-02 / D-04:
+ * when the caller omits a block, chain head MUST be read ONCE to a concrete
+ * number, and that same number used for BOTH the multicall reads and the
+ * provenance stamp. Otherwise the reads run at `latest` while provenance
+ * records block 0 — a non-replayable rating Phase 4 can never reproduce.
+ *
+ * When a block IS supplied it is returned unchanged (no RPC round-trip), so
+ * historical replay and unit tests that pass an explicit block never touch
+ * the network here.
+ */
+export async function resolveBlockNumber(
+  blockNumber?: bigint,
+): Promise<bigint> {
+  return blockNumber ?? (await publicClient.getBlockNumber());
+}
+
+/**
  * Redact MANTLE_RPC_URL (which may contain an Alchemy/Infura API key)
  * from any error message. T-2-03 mitigation per RESEARCH §10.
  */

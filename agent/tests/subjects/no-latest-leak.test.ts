@@ -31,11 +31,14 @@ describe("[2-02-03 no-latest-leak] block-pinning thread-through", () => {
       const lines = code.split("\n");
       for (let i = 0; i < lines.length; i++) {
         if (lines[i].includes("multiread(")) {
-          // Look at this line + next 3 for a blockNumber reference.
+          // Look at this line + next 3 for a *blockNumber reference.
+          // Case-insensitive so the CR-02 resolved-block identifier
+          // (`resolvedBlockNumber`) still satisfies the pin — the intent is
+          // that SOME concrete block is threaded to multiread, never `latest`.
           const window = lines
             .slice(i, Math.min(i + 4, lines.length))
             .join("\n");
-          expect(window).toMatch(/blockNumber/);
+          expect(window).toMatch(/blockNumber/i);
         }
       }
     });

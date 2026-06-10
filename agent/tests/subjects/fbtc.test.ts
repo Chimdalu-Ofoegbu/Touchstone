@@ -11,6 +11,11 @@ vi.mock("../../src/multicall.js", () => ({
   multiread: vi.fn(),
 }));
 
+// CR-02: hermetic head resolution — no live RPC when blockNumber is omitted.
+vi.mock("../../src/rpc.js", () => ({
+  resolveBlockNumber: vi.fn(async (b?: bigint) => b ?? 88_000_000n),
+}));
+
 import { multiread } from "../../src/multicall.js";
 import { fetchFbtc } from "../../src/subjects/fbtc.js";
 
@@ -93,9 +98,21 @@ describe("[2-02-03 FBTC] adapter", () => {
     expect(callArgs[1]).toBe(75_000_000n);
   });
 
-  it("ingestBlock is 0 when blockNumber is omitted", async () => {
+  it("resolves chain head and stamps THAT block (never 0) when blockNumber is omitted (CR-02)", async () => {
     vi.mocked(multiread).mockResolvedValue(fbtcMulticallSuccess);
     const facts = await fetchFbtc();
-    expect(facts.ingestBlock).toBe(0);
+    expect(facts.ingestBlock).toBe(88_000_000);
+    const callArgs = vi.mocked(multiread).mock.calls[0];
+    expect(callArgs[1]).toBe(88_000_000n);
+    const onchain = [
+      ...facts.collateral,
+      ...facts.contract,
+      ...facts.oracle,
+      ...facts.liquidity,
+    ].filter((f) => f.source.kind === "onchain");
+    for (const f of onchain) {
+      const src = f.source as Extract<typeof f.source, { kind: "onchain" }>;
+      expect(src.blockNumber).toBe(88_000_000);
+    }
   });
 });

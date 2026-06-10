@@ -14,6 +14,7 @@
 import { erc20Abi, parseAbi, type Address } from "viem";
 import type { SubjectFacts, Fact } from "./types.js";
 import { multiread, type Read } from "../multicall.js";
+import { resolveBlockNumber } from "../rpc.js";
 import { STATIC, staticFact } from "./static.js";
 import { priceAtBlock } from "../constants/prices.js";
 
@@ -57,9 +58,13 @@ export async function fetchFbtc(blockNumber?: bigint): Promise<SubjectFacts> {
       label: "FBTC owner()",
     },
   ];
-  const r1 = await multiread(round1, blockNumber);
+  // CR-02 / D-04: resolve a concrete block ONCE so the reads below, the
+  // ingestBlock provenance stamp, and priceAtBlock() all pin to the same
+  // snapshot. (priceAtBlock(0) would otherwise read a genesis-era price.)
+  const resolvedBlockNumber = await resolveBlockNumber(blockNumber);
+  const r1 = await multiread(round1, resolvedBlockNumber);
 
-  const ingestBlock = blockNumber !== undefined ? Number(blockNumber) : 0;
+  const ingestBlock = Number(resolvedBlockNumber);
   const btcPrice = priceAtBlock(ingestBlock).BTC_USD;
 
   const onchainFact = (
