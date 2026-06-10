@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-last_updated: "2026-06-10T19:26:48.626Z"
+status: Executing Phase 03
+last_updated: "2026-06-10T19:48:52.366Z"
 progress:
   total_phases: 5
   completed_phases: 2
@@ -20,14 +20,14 @@ progress:
 
 - **Project:** Touchstone
 - **Core value:** Credit-ratings agent for on-chain RWA assets on Mantle. Ingests risk data, scores deterministic dimensions, uses Claude to synthesize a letter grade (AAA–D) with cited rationale, publishes on-chain under an ERC-8004 identity with a verifiable reasoning hash. Moody's of the agentic economy.
-- **Current focus:** Phase 03 — on-chain publish + ERC-8004 + historical reconstruction start
+- **Current focus:** Phase 03 — onchain-publish-erc8004
 - **Ship target:** 2026-06-12 (user). Buffer: 2026-06-13. Official deadline: 2026-06-15.
 - **Today:** 2026-06-10 (Day 4 of the 5-day user target; Phases 1+2 complete).
 
 ## Current Position
 
-Phase: 3
-Plan: Not started
+Phase: 03 (onchain-publish-erc8004) — EXECUTING
+Plan: 1 of 6
 Code review (02-REVIEW.md) found 4 blockers on the cross-phase hash/provenance contract; verifier independently REPRODUCED all 4; ALL 4 FIXED inline this session (each an atomic root-cause-named commit) and re-verified CLOSED against live code:
 
   - CR-01 (SC-2) FIXED commit df2e254: synthesize.ts now rebuilds dimensions[] from engine BandResults (score/band_hit/missing_facts) in canonical key order; only rationale+citations are Claude's. Proven by [2-04-02e] divergent-score test.

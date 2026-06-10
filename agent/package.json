@@ -14,6 +14,7 @@
     "mint-identity": "tsx --env-file-if-exists=../.env src/mint-identity.ts",
     "publish-rating": "tsx --env-file-if-exists=../.env src/publish-cli.ts",
     "watch": "tsx --env-file-if-exists=../.env src/watch.ts",
+    "capture-elixir": "tsx src/fixtures/capture-elixir.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:live": "RUN_LIVE=1 vitest run --reporter=verbose",
