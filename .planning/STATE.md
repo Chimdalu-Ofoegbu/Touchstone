@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Executing Phase 02
-last_updated: "2026-06-09T03:16:07.785Z"
+status: Phase 02 verification — gaps_found (4 determinism blockers)
+last_updated: "2026-06-10T00:00:00.000Z"
 progress:
   total_phases: 5
   completed_phases: 1
@@ -26,8 +26,15 @@ progress:
 
 ## Current Position
 
-Phase: 02 (rating-engine-core) — EXECUTING
-Plan: 1 of 5
+Phase: 02 (rating-engine-core) — EXECUTED (5/5 plans), VERIFICATION = gaps_found. NOT marked complete.
+Plan: 5 of 5 SUMMARYs written + merged. 185-test vitest suite green (mock mode). Phase 1 forge suite 6/6 still green (no regression).
+Gap closure pending: `/gsd-plan-phase 2 --gaps` → `/gsd-execute-phase 2 --gaps-only`.
+Verifier independently REPRODUCED all 4 code-review blockers (02-REVIEW.md + 02-VERIFICATION.md). Core issue: deterministic dimension scores reach only the Claude prompt, not the hashed doc → live reasoning hash is non-deterministic. Phase 3/4 consume this hash, so must fix before Phase 3.
+  - CR-01 (SC-2 fail): agent/src/claude/synthesize.ts:185-192 spreads ...parsed, overrides only 5 scalars; dimensions[].score/band_hit are Claude's, not engine BandResults. Fix: override dimensions from BandResults keyed by `key`.
+  - CR-02 (SC-4 fail): subjects/{usdy:64,cmeth:59,fbtc:62}.ts stamp ingest_block=0 while reading `latest`. Fix: resolve a concrete block once, thread it.
+  - CR-04: rate.ts:138-140 getBlockTimestampSeconds(undefined) reads a 2nd independent `latest`. Fix: pin to the resolved block.
+  - CR-03: redactRpcUrl() has zero prod call sites; cli.ts:97 + multicall.ts:50 leak keyed MANTLE_RPC_URL on live error. Fix: wire redaction.
+  Two human-verify items deferred (live citation-rigor eyeball SC-3; live two-run determinism diff post-fix) — need ANTHROPIC_API_KEY.
 
 - Phase: 1 — Lock + Skeleton COMPLETE 2026-06-08 (+ post-review hardening redeploy 2026-06-08)
 - Plan: 1-03 complete; Phase 1 closed. Post-phase polish (WR-01/WR-02/WR-03/WR-04 from 01-REVIEW.md) applied and redeployed to Sepolia.
