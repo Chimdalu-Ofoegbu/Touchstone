@@ -2,15 +2,17 @@
 pragma solidity ^0.8.24;
 
 import {GradeEnum} from "./constants/GradeEnum.sol";
+import {IIdentityRegistry} from "./interfaces/IIdentityRegistry.sol";
 
-/// @title Touchstone RatingRegistry — Phase 1 skeleton
+/// @title Touchstone RatingRegistry — Phase 3 (ERC-8004 gated)
 /// @notice Stores published ratings keyed by subject. Public surface matches
 ///         CON-publishRating-signature, CON-requestRating-signature,
 ///         CON-read-interface, CON-rating-schema, CON-grade-encoding.
-/// @dev The `onlyAgent` modifier is a Phase 1 stub that gates on a single
-///      `agent` address set in the constructor. Phase 3 will swap the modifier
-///      implementation to "msg.sender holds ERC-8004 Identity Registry NFT"
-///      WITHOUT changing the contract ABI — see Pitfall 5 in RESEARCH.md.
+/// @dev The `onlyAgent` modifier gates on a live ERC-8004 identity check:
+///      `registry.ownerOf(agentTokenId) == msg.sender`. This supersedes the
+///      Phase 1 EOA stub via a one-time Mainnet redeploy (D-01) — the registry
+///      address + token id are immutable constructor args, so the gate target
+///      is a single source of reference that cannot be silently re-pointed.
 contract RatingRegistry {
     /// @notice Rating schema per CON-rating-schema.
     struct Rating {
@@ -22,12 +24,17 @@ contract RatingRegistry {
         address agentIdentity; // Phase 1: same as agent; Phase 3: ERC-8004 identity address
     }
 
-    /// @notice Address authorized to call publishRating. Phase 3 swaps the gate logic
-    ///         via redeploy (not in-place rotation) — see contract-level natspec.
-    /// @dev `immutable` per WR-02: matches the documented "set once" intent, saves an
-    ///      SLOAD per publishRating, and prevents a future patch from silently adding
-    ///      a setAgent(...) rotation path.
-    address public immutable agent;
+    /// @notice Canonical ERC-8004 Identity Registry the publish gate checks.
+    /// @dev Mantle Mainnet-ONLY canonical ERC-8004 Identity Registry. Do NOT point
+    ///      at Sepolia (the canonical registry is Mainnet-only; a Sepolia address
+    ///      silently breaks `ownerOf`). Passed at deploy time (Deploy.s.sol pins the
+    ///      named `IDENTITY_REGISTRY` constant), never hardcoded here — single source
+    ///      of reference (D-01). `immutable` per WR-02: set once, no rotation path.
+    IIdentityRegistry public immutable registry;
+
+    /// @notice ERC-8004 token id the rating agent must own to publish (minted FIRST,
+    ///         the Phase 3 ordering dependency; baked in at the one-time redeploy).
+    uint256 public immutable agentTokenId;
 
     /// @dev Subject => append-only Rating history.
     mapping(address => Rating[]) private _history;
@@ -54,15 +61,20 @@ contract RatingRegistry {
     ///         is a 0-100 percentage, not the full uint8 range).
     error InvalidConfidence();
 
-    /// @dev Phase 1 gate: simple address check. Phase 3: ERC-8004 NFT-holder check.
+    /// @dev ERC-8004 identity gate: caller must be the current owner of the agent's
+    ///      identity NFT. Live cross-contract call to the canonical registry — this
+    ///      is the new failure surface, tested in isolation FIRST (D-01,
+    ///      test_publishRating_revertsForNonAgent). Reuses the existing NotAgent error.
     modifier onlyAgent() {
-        if (msg.sender != agent) revert NotAgent();
+        if (registry.ownerOf(agentTokenId) != msg.sender) revert NotAgent();
         _;
     }
 
-    /// @param initialAgent Address allowed to publish ratings in Phase 1.
-    constructor(address initialAgent) {
-        agent = initialAgent;
+    /// @param registry_ Canonical ERC-8004 Identity Registry (Mantle Mainnet only).
+    /// @param agentTokenId_ Token id of the agent's identity NFT (minted FIRST).
+    constructor(address registry_, uint256 agentTokenId_) {
+        registry = IIdentityRegistry(registry_);
+        agentTokenId = agentTokenId_;
     }
 
     /// @notice Anyone can request a rating; off-chain agent listens for RatingRequested.
