@@ -366,6 +366,147 @@ describe("[2-04-02c] synthesizeRating — one-retry on schema mismatch (D-10)", 
   });
 });
 
+describe("[2-04-02e] synthesizeRating — CR-01: dimensions bound from engine, not Claude", () => {
+  it("publishes the engine's per-dimension score/band_hit/missing_facts, discarding Claude's", async () => {
+    // Claude returns score:70 + a bogus band_hit + invented missing_facts for
+    // EVERY dimension — the engine must overwrite all of them.
+    const claudeArgs = {
+      ...validToolArgs,
+      dimensions: validToolArgs.dimensions.map((d) => ({
+        ...d,
+        score: 70,
+        band_hit: { max: 999, score: 70, label: "claude-band" },
+        missing_facts: ["claude-invented"],
+      })),
+    };
+    // Engine BandResults — deliberately divergent per dimension so a pass-through
+    // bug (publishing Claude's 70s) is impossible to mistake for correct.
+    const engineScores = {
+      collateral: {
+        max: 85,
+        score: 85,
+        label: "eng-collateral",
+        missing_facts: [],
+        raw_value: 80,
+      },
+      contract: {
+        max: 70,
+        score: 62,
+        label: "eng-contract",
+        missing_facts: ["contract.audit"],
+        raw_value: 55,
+      },
+      oracle: {
+        max: null,
+        score: 50,
+        label: "eng-oracle-default",
+        missing_facts: [],
+        raw_value: null,
+      },
+      liquidity: {
+        max: 50,
+        score: 41,
+        label: "eng-liquidity",
+        missing_facts: [],
+        raw_value: 35,
+      },
+    } satisfies Record<string, BandResult>;
+    const client = mockAnthropicClient([
+      { kind: "ok", response: fixtureToolUseResponse(claudeArgs) },
+    ]);
+    const doc = await synthesizeRating({
+      subject,
+      scores: engineScores,
+      missingFacts: ["contract.audit"],
+      preComputedGrade: { letter: "A", uint8: 2 },
+      preComputedConfidence: 80,
+      blockTimestampSeconds: 1_717_804_800,
+      client,
+    });
+
+    const byKey = Object.fromEntries(doc.dimensions.map((d) => [d.key, d]));
+    // Engine scores, NOT Claude's hard-coded 70.
+    expect(byKey.collateral_quality.score).toBe(85);
+    expect(byKey.contract_risk.score).toBe(62);
+    expect(byKey.oracle_integrity.score).toBe(50);
+    expect(byKey.liquidity_stability.score).toBe(41);
+    // band_hit + missing_facts are the engine's too.
+    expect(byKey.collateral_quality.band_hit).toEqual({
+      max: 85,
+      score: 85,
+      label: "eng-collateral",
+    });
+    expect(byKey.contract_risk.missing_facts).toEqual(["contract.audit"]);
+    expect(byKey.collateral_quality.missing_facts).toEqual([]);
+    // Claude's narrative is preserved verbatim.
+    expect(byKey.collateral_quality.rationale).toBe("r [1]");
+    expect(byKey.collateral_quality.citations.length).toBe(1);
+    // Canonical dimension order regardless of Claude's emission order.
+    expect(doc.dimensions.map((d) => d.key)).toEqual([
+      "collateral_quality",
+      "contract_risk",
+      "oracle_integrity",
+      "liquidity_stability",
+    ]);
+  });
+
+  it("emits canonical order even when Claude returns dimensions shuffled", async () => {
+    const shuffled = {
+      ...validToolArgs,
+      dimensions: [
+        validToolArgs.dimensions[3], // liquidity_stability
+        validToolArgs.dimensions[1], // contract_risk
+        validToolArgs.dimensions[2], // oracle_integrity
+        validToolArgs.dimensions[0], // collateral_quality
+      ],
+    };
+    const client = mockAnthropicClient([
+      { kind: "ok", response: fixtureToolUseResponse(shuffled) },
+    ]);
+    const doc = await synthesizeRating({
+      subject,
+      scores,
+      missingFacts: [],
+      preComputedGrade: { letter: "AA", uint8: 1 },
+      preComputedConfidence: 95,
+      blockTimestampSeconds: 1_717_804_800,
+      client,
+    });
+    expect(doc.dimensions.map((d) => d.key)).toEqual([
+      "collateral_quality",
+      "contract_risk",
+      "oracle_integrity",
+      "liquidity_stability",
+    ]);
+  });
+
+  it("throws when Claude drops or duplicates a dimension key (does not hash a malformed doc)", async () => {
+    const dupArgs = {
+      ...validToolArgs,
+      dimensions: [
+        validToolArgs.dimensions[0], // collateral_quality
+        validToolArgs.dimensions[0], // duplicate collateral_quality (contract_risk dropped)
+        validToolArgs.dimensions[2], // oracle_integrity
+        validToolArgs.dimensions[3], // liquidity_stability
+      ],
+    };
+    const client = mockAnthropicClient([
+      { kind: "ok", response: fixtureToolUseResponse(dupArgs) },
+    ]);
+    await expect(
+      synthesizeRating({
+        subject,
+        scores,
+        missingFacts: [],
+        preComputedGrade: { letter: "AA", uint8: 1 },
+        preComputedConfidence: 95,
+        blockTimestampSeconds: 1_717_804_800,
+        client,
+      }),
+    ).rejects.toThrow(/dimension/i);
+  });
+});
+
 describe("[2-04-02d] synthesizeRating — no tool_use throws", () => {
   it("throws 'did not call submit_rating' when content is text-only", async () => {
     const client = mockAnthropicClient([

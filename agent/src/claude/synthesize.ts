@@ -1,14 +1,26 @@
 // agent/src/claude/synthesize.ts
 // Single-shot Anthropic call with forced submit_rating tool (D-09, D-10).
 //
-// CRITICAL: after zod parse, the engine OVERWRITES five fields on the
-// returned document:
+// CRITICAL: after zod parse, the engine OVERWRITES the deterministic fields
+// on the returned document:
 //   - generated_at  (T-2-06: Claude's timestamp formatting is non-deterministic)
 //   - claude_model  (T-2-06: pin the model id from MODEL, not from Claude's reply)
 //   - ingest_block  (T-2-06: pin from the SubjectFacts ingest)
-//   - grade         (defense-in-depth: deterministic synthesize() decides)
-//   - confidence    (defense-in-depth: deterministic synthesize() decides)
-// Claude controls NARRATIVE only — the numbers are not negotiable.
+//   - grade         (deterministic synthesize() decides)
+//   - confidence    (deterministic synthesize() decides)
+//   - dimensions[].score / band_hit / missing_facts  (CR-01: these are the
+//     engine's deterministic BandResults, NOT Claude's tool output — see below)
+// Claude controls NARRATIVE only (per-dimension rationale + citations,
+// overall_rationale) — every number is the engine's.
+//
+// CR-01 (cross-phase hash integrity): the four deterministic dimension
+// scores MUST be the numbers that appear in the published, hashed document
+// (CON-deterministic-vs-llm-separation; plan 02-04 must_have #5). The
+// dimensions[] array is rebuilt in a FIXED canonical key order so the
+// canonical-JSON bytes (RFC 8785 does NOT sort arrays) — and therefore the
+// reasoning hash — do not depend on the order Claude happened to emit the
+// dimensions in. Each dimension's score/band_hit/missing_facts come from the
+// engine BandResult keyed by `key`; only rationale + citations are Claude's.
 //
 // One-retry path (D-10): on first-call zod parse failure, re-prompt with
 // the validation error appended to the system prompt. If the retry also
@@ -38,6 +50,22 @@ import type { GradeLetter } from "../constants/grade-enum.js";
  * at module-load time; tests can rely on import-time pinning.
  */
 export const MODEL: string = process.env.CLAUDE_MODEL ?? "claude-opus-4-8";
+
+/**
+ * The four dimension keys in their LOCKED canonical order. CR-01: the
+ * published dimensions[] is emitted in exactly this order so the canonical
+ * JSON (RFC 8785 does not reorder arrays) and the reasoning hash are
+ * independent of the order Claude returned the dimensions in. Mirrors the
+ * schema's dimension key enum and the 4 scorers wired in rate().
+ */
+export const CANONICAL_DIMENSION_KEYS = [
+  "collateral_quality",
+  "contract_risk",
+  "oracle_integrity",
+  "liquidity_stability",
+] as const;
+
+export type DimensionKey = (typeof CANONICAL_DIMENSION_KEYS)[number];
 
 /** Minimal client surface — the full Anthropic client OR a test mock both satisfy this. */
 export type AnthropicClientLike = {
@@ -182,10 +210,54 @@ export async function synthesizeRating(
     .toISOString()
     .replace(/\.\d{3}Z$/, "Z");
 
+  // CR-01: rebuild dimensions[] in a FIXED canonical order, taking each
+  // dimension's score / band_hit / missing_facts from the engine BandResult
+  // (the deterministic scorer) and keeping ONLY Claude's narrative
+  // (rationale + citations). This is the single source of the published
+  // per-dimension numbers; Claude's own dimensions[].score is discarded.
+  const bandByKey: Record<DimensionKey, BandResult> = {
+    collateral_quality: input.scores.collateral,
+    contract_risk: input.scores.contract,
+    oracle_integrity: input.scores.oracle,
+    liquidity_stability: input.scores.liquidity,
+  };
+  const claudeByKey = new Map(parsed.dimensions.map((d) => [d.key, d]));
+  if (claudeByKey.size !== CANONICAL_DIMENSION_KEYS.length) {
+    // zod enforces length 4 + valid enum keys, but NOT uniqueness — a
+    // duplicated key (and therefore a missing one) would silently corrupt
+    // the published rating. Reject loudly rather than hash a malformed doc.
+    throw sanitizeError(
+      new Error(
+        "submit_rating returned duplicate/missing dimension keys; expected exactly " +
+          CANONICAL_DIMENSION_KEYS.join(", "),
+      ),
+    );
+  }
+  const dimensions = CANONICAL_DIMENSION_KEYS.map((key) => {
+    const claudeDim = claudeByKey.get(key);
+    if (!claudeDim) {
+      throw sanitizeError(
+        new Error("submit_rating missing dimension '" + key + "'"),
+      );
+    }
+    const band = bandByKey[key];
+    return {
+      key,
+      // Engine-deterministic — overrides whatever Claude put here.
+      score: band.score,
+      band_hit: { max: band.max, score: band.score, label: band.label },
+      missing_facts: band.missing_facts,
+      // Claude narrative — preserved verbatim.
+      rationale: claudeDim.rationale,
+      citations: claudeDim.citations,
+    };
+  });
+
   const overridden: ReasoningDocument = {
     ...parsed,
     grade: input.preComputedGrade,
     confidence: input.preComputedConfidence,
+    dimensions,
     generated_at,
     claude_model: MODEL,
     ingest_block: input.subject.ingestBlock,
