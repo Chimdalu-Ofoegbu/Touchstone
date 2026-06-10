@@ -128,16 +128,21 @@ export function validateCitations(
 /**
  * Resolve the unix-seconds timestamp for the ingest block. In --mock mode,
  * pin to a deterministic value so the hash is reproducible without a live
- * RPC call. In live mode, fetch the block via viem and read its timestamp.
+ * RPC call. In live mode, fetch the EXACT ingest block via viem and read its
+ * timestamp.
+ *
+ * CR-04: the caller MUST pass the concrete ingest block (facts.ingestBlock),
+ * not undefined. Reading `getBlock({})` (latest) here would sample a second,
+ * independent chain-head snapshot for generated_at — racing the fact reads and
+ * making the rating non-reproducible. Pinning to the ingest block ties
+ * generated_at to the same state the dimensions were scored from.
  */
 async function getBlockTimestampSeconds(
-  blockNumber: bigint | undefined,
+  blockNumber: bigint,
   mock: boolean,
 ): Promise<number> {
   if (mock) return 1_717_804_800; // 2024-06-08T00:00:00Z — fixed for hash determinism in --mock
-  const block = await publicClient.getBlock(
-    blockNumber !== undefined ? { blockNumber } : {},
-  );
+  const block = await publicClient.getBlock({ blockNumber });
   return Number(block.timestamp);
 }
 
@@ -233,8 +238,11 @@ export async function rate(
   const liquidity = scoreLiquidityStability(facts);
   const det = synthesize({ collateral, contract, oracle, liquidity });
 
+  // CR-04: pin generated_at to the SAME block the adapter resolved + read
+  // (facts.ingestBlock), not a fresh `latest`. After CR-02 facts.ingestBlock
+  // is always a concrete resolved block.
   const blockTimestampSeconds = await getBlockTimestampSeconds(
-    opts.blockNumber,
+    BigInt(facts.ingestBlock),
     !!opts.mock,
   );
 
