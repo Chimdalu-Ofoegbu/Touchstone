@@ -1,0 +1,61 @@
+{
+  "subject": {
+    "name": "Elixir deUSD (pre-failure, historical proof)",
+    "ticker": "deUSD",
+    "address": "0xe2fc85bfb48c4cf147921fbe110cf92ef9f26f94",
+    "chainId": 1
+  },
+  "kind": "historical-proof",
+  "note": "Captured by the UNMODIFIED Phase-2 engine (no special-casing). NOT a live rating.",
+  "provenance": {
+    "fixtureVersion": "1.0.0",
+    "analysisDate": "2025-10-28",
+    "collapseWindow": "2025-11-03..06",
+    "ingestBlock": 21400000
+  },
+  "grade": {
+    "letter": "B",
+    "uint8": 5,
+    "overall": 44,
+    "confidence": 70,
+    "totalMissingFacts": 6
+  },
+  "dimensions": {
+    "collateral_quality": {
+      "score": 35,
+      "band": "thin collateral disclosure",
+      "raw_value": 0,
+      "missing_facts": [
+        "audits",
+        "reserve attestation",
+        "custodian"
+      ],
+      "red_flag": "65% xUSD concentration + circular collateralization (xUSD ↔ deUSD)"
+    },
+    "contract_risk": {
+      "score": 30,
+      "band": "unverified or pausable-by-EOA with no timelock",
+      "raw_value": 0,
+      "missing_facts": [
+        "audits",
+        "timelock",
+        "owner"
+      ],
+      "red_flag": "private unlisted Morpho markets, 4.1x recursive leverage"
+    },
+    "oracle_integrity": {
+      "score": 30,
+      "band": "single trusted feed or no on-chain settlement",
+      "raw_value": 10,
+      "missing_facts": [],
+      "red_flag": "xUSD oracle hardcoded $1.00 across Morpho/Euler/Elixir lending markets"
+    },
+    "liquidity_stability": {
+      "score": 82,
+      "band": "deep liquidity",
+      "raw_value": 160000000,
+      "missing_facts": [],
+      "red_flag": "$520M claimed vs $160M actual TVL; 12% yield premium over Aave baseline"
+    }
+  }
+}
