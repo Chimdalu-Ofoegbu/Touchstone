@@ -85,8 +85,10 @@ ERC-8004 canonical registries are live on Mantle Mainnet (deployed 2026-02-11). 
 ### DEC-deployment-target-plan
 Iterate on **Mantle Sepolia (chain 5003)** through Days 1-4. Deploy ship artifact to **Mantle Mainnet (chain 5000)** on Day 5 with final code. Verification via Blockscout (`forge verify-contract --verifier blockscout --verifier-url https://explorer.mantle.xyz/api/`) — no API key required. Native MNT gas ~0.05 gwei; deploy cost <$1. Submission contains the Mainnet address. Source: `.planning/phases/01-lock-skeleton/RESEARCH.md` + user lock 2026-06-07.
 
-### DEC-ipfs-provider-web3storage
-**web3.storage** is the IPFS pinning provider for reasoning JSON. Picked over Pinata for simpler TS API and more generous free tier. Replaces "web3.storage or Pinata" optionality in DEC-tech-stack. Source: user lock 2026-06-07.
+### DEC-ipfs-provider-web3storage → AMENDED to Pinata (2026-06-10)
+**Original (2026-06-07):** web3.storage chosen over Pinata for "simpler TS API and more generous free tier."
+
+**AMENDED 2026-06-10 (Phase 3 planning): Pinata is the locked IPFS pinning provider.** The original "simpler API" premise was inverted by the headless reality discovered in Phase 3 pre-flight research: modern web3.storage (Storacha) headless auth is a multi-step delegation flow (`storacha key create` + `storacha delegation create` → `STORACHA_KEY` + `STORACHA_PROOF`), and its `uploadFile` always directory-wraps the content. Pinata is materially simpler for a headless agent — a single `PINATA_JWT` and a **raw-file CID** that resolves directly to the verifiable reasoning JSON (no directory-wrap), which is cleaner for the on-chain `cid` pointer + Phase-4 byte-exact re-hash. Free tier covers the handful of demo pins. The hash/verifiability contract is unchanged by this swap. Source: user lock 2026-06-10 (Phase 3 plan-checker reconciliation).
 
 </decisions>
 

@@ -522,21 +522,17 @@ function test_publishRating_revertsForNonAgent() public {
 
 **No assumptions on the security-critical paths** (gate logic, hash determinism, mint permissionlessness) — those are VERIFIED against the live registry (CONTEXT pre-flight) and the existing codebase.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Storacha vs Pinata final lock.**
-   - What we know: both headless paths work; Pinata's raw CID is simpler for byte-exact verify; Storacha honors DEC-ipfs-provider-web3storage.
-   - What's unclear: whether the user has completed the Storacha one-time CLI setup (the `STORACHA_KEY`/`STORACHA_PROOF` todo is still ⬜ in CONTEXT).
-   - Recommendation: write `ipfs.ts` with a single `pin(canonical)` interface; default to Pinata (one `PINATA_JWT`) and keep the Storacha implementation behind the same function so switching is a one-line change. Let the planner sequence "user provides creds" as a prerequisite task.
+1. **Storacha vs Pinata final lock. → RESOLVED 2026-06-10: Pinata.**
+   - Decision: ship **Pinata** with a single `PINATA_JWT`. This amends `DEC-ipfs-provider-web3storage` (see PROJECT.md amendment note). Rationale: the original web3.storage pick assumed a "simpler API," but the modern Storacha headless flow (delegation: key + space + proof) is fiddlier AND `uploadFile` always directory-wraps; Pinata gives a raw-file CID that points straight at the verifiable JSON, which is cleaner for the byte-exact re-hash. Free tier covers the handful of demo pins.
+   - Implementation (locked by user): `ipfs.ts` exposes `pin(canonicalBytes) → cid`; pin reasoning JSON as a **raw file (NOT directory-wrapped)** so the CID resolves directly to the JSON; store the **bare CID** in the Rating struct (frontend composes the gateway URL + can fall back to public gateways); canonical serialization must be identical on pin and on verify; prove a single **pin→fetch-by-CID-through-a-public-gateway→recompute-hash→assert-match round trip in isolation** before wiring into the publish pipeline. No Storacha implementation is built this phase (drop the dual-adapter hedge; Pinata is the single provider).
 
-2. **cmETH/FBTC engine grade spread (carryover from Phase 2 UAT).**
-   - What we know: USDY rated BBB live; cmETH/FBTC not yet run live (API budget). All three share one code path.
-   - What's unclear: whether the spread is demo-worthy without tuning.
-   - Recommendation: out of scope for Phase 3 wiring, but the watcher demo (REQ-10) will exercise these live — surface any flat-grade finding to the user, don't tune.
+2. **cmETH/FBTC engine grade spread (carryover from Phase 2 UAT). → RESOLVED: out of Phase-3 scope; surface, don't tune.**
+   - The Plan-06 live end-to-end exercises cmETH/FBTC live (REQ-10 path). Per D-04 / Pitfall 5 discipline: if grades come back flat, **surface the finding to the user — do NOT tune the engine** inside Phase 3.
 
-3. **Agent-card `registrations` self-reference.**
-   - What we know: `agentId` is only known after the mint tx.
-   - Recommendation: pin the card WITHOUT `registrations` (or with a placeholder), mint, capture `agentId`; optionally re-pin a complete card afterward if a fully-verified card is desired. Not a blocker for the four success criteria.
+3. **Agent-card `registrations` self-reference. → RESOLVED: pin card without `registrations`, then mint.**
+   - `agentId` is only known after the mint tx. Pin the agent card WITHOUT the `registrations` array, mint via `register(agentURI)`, capture `agentId`; optional re-pin of a fully-verified card afterward is not required for the four success criteria.
 
 ## Environment Availability
 
