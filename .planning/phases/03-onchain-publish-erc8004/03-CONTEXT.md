@@ -66,9 +66,20 @@ Owns: REQ-02 (real publish), REQ-03, REQ-04, REQ-06 (start). Frontend rendering 
 ### Claude's Discretion
 - Exact Solidity interface name/shape for `IIdentityRegistry` (minimal — `ownerOf` only).
 - Watcher reconnect/backoff parameters, heartbeat interval, log format.
-- web3.storage client wiring details (auth token via root `.env`), CID version.
+- `@storacha/client` wiring details (CID version, store), agent-card JSON contents.
 - Fixture file location/naming under `agent/` (separate from `src/subjects/` live adapters).
 - Whether the manual publish CLI is a new `agent/src/publish.ts` + `pnpm publish-rating` script or folded into existing CLI surface.
+
+### Pre-Flight Verification (resolved 2026-06-10, against live Mantle Mainnet)
+The two open unknowns from the post-discussion review were researched + verified against the **deployed** contracts/tools before planning — both are tractable, neither is a blocker:
+
+- **ERC-8004 mint — RESOLVED (airtight, deployed-bytecode confirmed).** The canonical Identity Registry `0x8004A169…` on Mantle Mainnet is `name="AgentIdentity"`, `symbol="AGENT"`, `supportsInterface(0x80ac58cd)=true` (ERC-721 → `ownerOf(uint256)` valid for the D-01 gate). Mint surface (per EIP-8004 + live `eth_call` simulation): **`register(string agentURI) returns (uint256 agentId)`** (selector `0xf2c298be`), plus `register()` and `register(string,MetadataEntry[])` overloads. Simulating `register()`/`register(string)` reached the ERC-721 `_mint` step (reverted only with `ERC721InvalidReceiver(0x0)` because `eth_call`'s default sender is the zero address) → **registration is permissionless and mints to `msg.sender`**. **Phase 3 mint step:** agent EOA calls `register(agentURI)` where `agentURI` resolves to a small Touchstone agent-card JSON (name/description/endpoints) pinned to IPFS; capture the returned `agentId` (from return value / `Transfer(0x0 → agent, agentId)` event) and bake it into the RatingRegistry constructor.
+- **web3.storage headless — RESOLVED (viable, needs one-time setup).** Modern web3.storage = **Storacha**; package `@storacha/client` (legacy alias `@web3-storage/w3up-client`). Headless/daemon auth uses **delegation, not a runtime API token**: one-time CLI setup (`storacha key create` → agent key; `storacha delegation create <agent_did> --base64` → proof) yields two env vars; code does `Signer.parse(KEY)` + `Proof.parse(PROOF)` + `addSpace` + `setCurrentSpace` with `StoreMemory` — no interactive/email step at runtime. Locked decision (web3.storage) holds; **Pinata JWT remains the simpler contingency** if the Storacha setup proves fiddly under time pressure.
+- **Pinned bytes == hashed bytes — already designed (D-02 guard):** pin the exact `canonicalizeDoc(doc)` output that was hashed (Phase 2 `rate({writeToFs})` already emits these canonical bytes). No re-serialization.
+
+### Phase 3 Execution Prerequisites (one-time, before the on-chain work)
+1. ✅ **Agent EOA funded** — `0xb27c7fa15D25E880Ba4a9a508e166538e106F51e` holds **16.41 MNT** on Mantle Mainnet (confirmed 2026-06-10). Covers identity mint + RatingRegistry redeploy + publishRating gas (deploys <$1).
+2. ⬜ **Storacha KEY + PROOF env vars** — user runs the one-time `storacha key create` + `storacha delegation create … --base64` and adds the two values to the root `.env` (alongside `ANTHROPIC_API_KEY` / `MANTLE_RPC_URL` / `PRIVATE_KEY`). Needed before the watcher/publish pipeline can pin. (Or switch to Pinata: a single `PINATA_JWT`.)
 </decisions>
 
 <canonical_refs>

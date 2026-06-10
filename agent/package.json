@@ -21,8 +21,7 @@
     "@anthropic-ai/sdk": "^0.102.0",
     "canonicalize": "^3.0.0",
     "viem": "^2.52.2",
-    "zod": "^4.4.3",
-    "zod-to-json-schema": "^3.24.0"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
