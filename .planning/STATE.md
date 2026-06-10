@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to plan
-last_updated: "2026-06-10T12:43:09.057Z"
+last_updated: "2026-06-10T14:24:27.404Z"
 progress:
   total_phases: 5
   completed_phases: 2
@@ -103,7 +103,7 @@ None. Intel marked READY (no blockers, no competing variants).
 
 ## Session Continuity
 
-- **Last session:** 2026-06-09T00:33:20Z — Phase 2 discuss-phase completed (Day 2 of 5). Discussion covered all 4 selected gray areas (Data ingest strategy, Scoring rubric shape, Claude integration shape, Reasoning JSON schema + hash stability). Decisions D-01..D-14 captured: per-subject adapters in `agent/src/subjects/{usdy,cmeth,fbtc}.ts`, viem + Multicall3 (`0xcA11bde05977b3631167028862bE2a173976CA11`) with optional `blockNumber` for Phase 3 historical replay, Mantle Mainnet (chain 5000) as the read source; threshold-banded scoring per dimension, missing data → neutral 50 + drop confidence 5pts/fact (floor 30), uniform 25% per-dimension weighting; single-shot Claude call with Anthropic tool-use schema enforcement, `claude-sonnet-4-5` default with `CLAUDE_MODEL` env-var swap path to Opus; reasoning JSON schema locked (subject/grade/confidence/dimensions[]/overall_rationale/generated_at/claude_model/ingest_block), structured citations[] array with `[N]` inline refs, RFC 8785 JCS canonical serialization (npm `canonicalize`) for keccak256 stability — same hash path Phase 3 (publisher) and Phase 4 (verifier) must use. Artifacts: `.planning/phases/02-rating-engine-core/02-CONTEXT.md`, `.planning/phases/02-rating-engine-core/02-DISCUSSION-LOG.md`. Phase 1 still CLOSED; Phase 2 ready for `/gsd-plan-phase 2`.
+- **Last session:** 2026-06-10T14:24:27.391Z
 
 - **Phase 1 polish session:** 2026-06-08T07:00:00Z — Applied code-review findings WR-01 (confidence range guard), WR-02 (agent → immutable), WR-03 (latestRating sentinel docs + test tighten), WR-04 (.gitignore .env.* glob). Test suite expanded from 5/5 to 6/6 (new `test_publishRating_confidenceRange`). Redeployed hardened contract to Mantle Sepolia from same deployer EOA (nonce 3): canonical address now `0x54163E309f7C8108F7110B086F640882a97f3838`. Verified on Mantlescan via Etherscan V2 on first try. Smoke `requestRating` from fresh non-agent wallet `0x6FA40bBd50FB164D809b59D523357011055a60F4` confirmed RatingRequested event. Commits: `66eda27`, `0bceed0`, `55fa8f7`, `e15a767`, `ded45bf`. Phase 1.0 contract at `0x0912bcBd…Be18` left on-chain as historical record.
 
