@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 02 verification — gaps_found (4 determinism blockers)
-last_updated: "2026-06-10T00:00:00.000Z"
+status: Phase 02 code-complete + verified (4/4); HOLDING for live human UAT before close
+last_updated: "2026-06-10T12:35:00.000Z"
 progress:
   total_phases: 5
   completed_phases: 1
@@ -26,15 +26,17 @@ progress:
 
 ## Current Position
 
-Phase: 02 (rating-engine-core) — EXECUTED (5/5 plans), VERIFICATION = gaps_found. NOT marked complete.
-Plan: 5 of 5 SUMMARYs written + merged. 185-test vitest suite green (mock mode). Phase 1 forge suite 6/6 still green (no regression).
-Gap closure pending: `/gsd-plan-phase 2 --gaps` → `/gsd-execute-phase 2 --gaps-only`.
-Verifier independently REPRODUCED all 4 code-review blockers (02-REVIEW.md + 02-VERIFICATION.md). Core issue: deterministic dimension scores reach only the Claude prompt, not the hashed doc → live reasoning hash is non-deterministic. Phase 3/4 consume this hash, so must fix before Phase 3.
-  - CR-01 (SC-2 fail): agent/src/claude/synthesize.ts:185-192 spreads ...parsed, overrides only 5 scalars; dimensions[].score/band_hit are Claude's, not engine BandResults. Fix: override dimensions from BandResults keyed by `key`.
-  - CR-02 (SC-4 fail): subjects/{usdy:64,cmeth:59,fbtc:62}.ts stamp ingest_block=0 while reading `latest`. Fix: resolve a concrete block once, thread it.
-  - CR-04: rate.ts:138-140 getBlockTimestampSeconds(undefined) reads a 2nd independent `latest`. Fix: pin to the resolved block.
-  - CR-03: redactRpcUrl() has zero prod call sites; cli.ts:97 + multicall.ts:50 leak keyed MANTLE_RPC_URL on live error. Fix: wire redaction.
-  Two human-verify items deferred (live citation-rigor eyeball SC-3; live two-run determinism diff post-fix) — need ANTHROPIC_API_KEY.
+Phase: 02 (rating-engine-core) — EXECUTED (5/5 plans) + code review + gap closure + re-verify DONE. VERIFICATION = human_needed (4/4 success criteria code-verified). NOT marked complete — user chose to HOLD for live UAT (2026-06-10).
+Plan: 5/5 SUMMARYs merged. 190-test vitest suite green + tsc clean (mock mode). Phase 1 forge suite 6/6 still green (no regression).
+Code review (02-REVIEW.md) found 4 blockers on the cross-phase hash/provenance contract; verifier independently REPRODUCED all 4; ALL 4 FIXED inline this session (each an atomic root-cause-named commit) and re-verified CLOSED against live code:
+  - CR-01 (SC-2) FIXED commit df2e254: synthesize.ts now rebuilds dimensions[] from engine BandResults (score/band_hit/missing_facts) in canonical key order; only rationale+citations are Claude's. Proven by [2-04-02e] divergent-score test.
+  - CR-02 (SC-4) FIXED commit 25c789d: rpc.ts resolveBlockNumber() + 3 adapters thread one concrete resolved block into multiread AND ingestBlock (no more `:0` while reading latest). 3 adapter tests assert resolved head stamped.
+  - CR-04 (SC-4) FIXED commit 27692f8: rate.ts getBlockTimestampSeconds(blockNumber: bigint) reads getBlock({blockNumber}) at BigInt(facts.ingestBlock) — no 2nd latest snapshot.
+  - CR-03 (security) FIXED commit d334286: redactRpcError wired into multicall.ts/rate.ts/rpc.ts + redactRpcUrl at cli.ts boundary; wiring tripwire test enforces it.
+REMAINING (user holding to run): 2 live-API human UAT items in 02-HUMAN-UAT.md — need ANTHROPIC_API_KEY + MANTLE_RPC_URL:
+  1. Live citation-rigor eyeball (SC-3): `pnpm rate USDY|cmETH|FBTC --block <recent>` → rationales cite specific facts, grades vary.
+  2. Live two-run determinism (SC-4): `pnpm rate USDY --block <fixed N>` twice → byte-identical reasoningHash.
+TO CLOSE after live UAT passes: mark 02-HUMAN-UAT.md results, then `gsd-sdk query phase.complete 02` + commit, then advance to Phase 3. Verifier confirmed NO code gaps block Phase 3 planning.
 
 - Phase: 1 — Lock + Skeleton COMPLETE 2026-06-08 (+ post-review hardening redeploy 2026-06-08)
 - Plan: 1-03 complete; Phase 1 closed. Post-phase polish (WR-01/WR-02/WR-03/WR-04 from 01-REVIEW.md) applied and redeployed to Sepolia.
