@@ -48,7 +48,7 @@ import {
 } from "./claude/synthesize.js";
 import { computeReasoningHash, canonicalizeDoc } from "./hash.js";
 import { parseReasoningDocument, type ReasoningDocument } from "./schema.js";
-import { publicClient } from "./rpc.js";
+import { publicClient, redactRpcError } from "./rpc.js";
 // W2 fix: import from production-safe src location (no test-framework deps).
 // tests/helpers/mock-anthropic.ts re-exports from this file for backward compat.
 import { fixtureToolUseResponse, mockAnthropicClient } from "./claude/mock.js";
@@ -142,7 +142,13 @@ async function getBlockTimestampSeconds(
   mock: boolean,
 ): Promise<number> {
   if (mock) return 1_717_804_800; // 2024-06-08T00:00:00Z — fixed for hash determinism in --mock
-  const block = await publicClient.getBlock({ blockNumber });
+  // CR-03 / T-2-03: scrub the keyed RPC URL from any transport error.
+  let block;
+  try {
+    block = await publicClient.getBlock({ blockNumber });
+  } catch (e) {
+    throw redactRpcError(e);
+  }
   return Number(block.timestamp);
 }
 

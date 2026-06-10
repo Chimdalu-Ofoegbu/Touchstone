@@ -14,7 +14,9 @@ import {
 } from "../../src/subjects/static.js";
 import { priceAtBlock, PRICES } from "../../src/constants/prices.js";
 import { multiread } from "../../src/multicall.js";
-import { redactRpcUrl } from "../../src/rpc.js";
+import { redactRpcUrl, redactRpcError } from "../../src/rpc.js";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 describe("[2-02-01a] STATIC facts module", () => {
   it("STATIC_VERSION is locked to '1.0.0'", () => {
@@ -112,5 +114,36 @@ describe("[2-02-01c] Multicall + RPC redaction (T-2-03)", () => {
   it("redactRpcUrl returns the original message when URL not present", () => {
     const msg = "an unrelated message";
     expect(redactRpcUrl(msg)).toBe(msg);
+  });
+
+  it("redactRpcError wraps a thrown value as an Error with the RPC URL scrubbed (CR-03)", () => {
+    const err = redactRpcError(
+      new Error("HttpRequestError: POST https://rpc.mantle.xyz/foo failed"),
+    );
+    expect(err).toBeInstanceOf(Error);
+    expect(err.message.includes("https://rpc.mantle.xyz")).toBe(false);
+    expect(err.message.includes("[redacted]")).toBe(true);
+  });
+
+  // CR-03 root cause was "redactRpcUrl defined but never called in production."
+  // This tripwire keeps the redactor WIRED at every live RPC site so the leak
+  // cannot silently regress to zero call sites again.
+  it("every production RPC call site funnels errors through the redactor (CR-03)", () => {
+    const srcRoot = resolve(__dirname, "../../src");
+    const mustRedact: Array<[string, RegExp]> = [
+      ["multicall.ts", /redactRpcError/],
+      ["rate.ts", /redactRpcError/],
+      ["rpc.ts", /redactRpcError/],
+      ["cli.ts", /redactRpcUrl/],
+    ];
+    for (const [file, pattern] of mustRedact) {
+      const text = readFileSync(resolve(srcRoot, file), "utf8");
+      // Strip line-comments so prose mentioning the symbol doesn't count.
+      const code = text
+        .split("\n")
+        .filter((l) => !l.trim().startsWith("//") && !l.trim().startsWith("*"))
+        .join("\n");
+      expect(code).toMatch(pattern);
+    }
   });
 });

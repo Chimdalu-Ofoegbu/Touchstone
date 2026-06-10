@@ -37,7 +37,12 @@ export const publicClient: PublicClient = createPublicClient({
 export async function resolveBlockNumber(
   blockNumber?: bigint,
 ): Promise<bigint> {
-  return blockNumber ?? (await publicClient.getBlockNumber());
+  if (blockNumber !== undefined) return blockNumber;
+  try {
+    return await publicClient.getBlockNumber();
+  } catch (e) {
+    throw redactRpcError(e);
+  }
 }
 
 /**
@@ -47,6 +52,18 @@ export async function resolveBlockNumber(
 export function redactRpcUrl(message: string): string {
   if (!message || !MANTLE_RPC_URL) return message;
   return message.split(MANTLE_RPC_URL).join("[redacted]");
+}
+
+/**
+ * CR-03 / T-2-03: wrap an unknown thrown value as an Error whose message has
+ * the (possibly keyed) RPC URL scrubbed. viem transport failures embed the
+ * endpoint URL in their message, so EVERY production RPC call site must funnel
+ * its catch through this before the error reaches a log, stderr, or JSON
+ * output. redactRpcUrl alone is inert — this is its wiring.
+ */
+export function redactRpcError(e: unknown): Error {
+  const msg = e instanceof Error ? e.message : String(e);
+  return new Error(redactRpcUrl(msg));
 }
 
 /** Test-only export — for redaction tests; not part of public API. */

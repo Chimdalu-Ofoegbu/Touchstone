@@ -16,7 +16,7 @@
 // the default-to-50 + confidence-drop policy in Wave 2).
 
 import type { Abi, Address } from "viem";
-import { publicClient } from "./rpc.js";
+import { publicClient, redactRpcError } from "./rpc.js";
 
 export type Read = {
   address: Address;
@@ -47,11 +47,20 @@ export async function multiread(
   blockNumber?: bigint,
 ): Promise<ReadResult[]> {
   if (reads.length === 0) return [];
-  const results = await publicClient.multicall({
-    contracts: reads.map(({ label: _label, ...c }) => c),
-    blockNumber,
-    allowFailure: true,
-  });
+  // allowFailure:true means per-read failures become {status:"failure"} below;
+  // this catch only fires on TRANSPORT errors (bad endpoint, network), which
+  // are exactly the ones whose viem message embeds the (keyed) RPC URL.
+  // CR-03 / T-2-03: scrub it before it can propagate to a log or stderr.
+  let results;
+  try {
+    results = await publicClient.multicall({
+      contracts: reads.map(({ label: _label, ...c }) => c),
+      blockNumber,
+      allowFailure: true,
+    });
+  } catch (e) {
+    throw redactRpcError(e);
+  }
   return results.map((r, i) => {
     const label = reads[i].label;
     if (r.status === "success") {

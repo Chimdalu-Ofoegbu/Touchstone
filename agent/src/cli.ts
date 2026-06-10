@@ -22,6 +22,7 @@
 
 import { rate } from "./rate.js";
 import { canonicalizeDoc } from "./hash.js";
+import { redactRpcUrl } from "./rpc.js";
 import type { SubjectId } from "./subjects/types.js";
 
 const SUBJECT_IDS: ReadonlySet<SubjectId> = new Set([
@@ -93,9 +94,12 @@ async function main() {
     if (result.outPath)
       process.stdout.write("outPath=" + result.outPath + "\n");
   } catch (e) {
-    // Error message has already been scrubbed of ANTHROPIC_API_KEY by synthesize.ts.
+    // ANTHROPIC_API_KEY is scrubbed by synthesize.ts; RPC errors are scrubbed
+    // by redactRpcError at the call site. CR-03 / T-2-03: redact once more at
+    // the boundary as defense-in-depth so no error shape can leak the keyed
+    // MANTLE_RPC_URL to stderr.
     const msg = e instanceof Error ? e.message : String(e);
-    process.stderr.write("ERROR: " + msg + "\n");
+    process.stderr.write("ERROR: " + redactRpcUrl(msg) + "\n");
     process.exit(1);
   }
 }
