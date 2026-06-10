@@ -10,8 +10,30 @@
 //
 // RESEARCH §4 + CONTEXT D-10.
 
-import { zodToJsonSchema } from "zod-to-json-schema";
+import { z } from "zod";
 import { ReasoningDoc } from "../schema.js";
+
+/**
+ * Build the Anthropic `input_schema` for submit_rating from the locked zod
+ * schema, so the on-the-wire contract and the runtime validator can never drift.
+ *
+ * CR-05 (live-path bug): the previous implementation used zod-to-json-schema
+ * (v3), whose converter targets zod v3 internals. Against our zod-v4 schema it
+ * emitted a `{ $ref, definitions }` wrapper with NO top-level `type`, which the
+ * Anthropic Messages API rejects with
+ *   400 invalid_request_error: tools.0.custom.input_schema.type: Field required
+ * The mock suite never caught it because the mock client doesn't validate the
+ * tool schema the way the real API does. zod v4 ships a native, spec-correct
+ * converter (`z.toJSONSchema`) that emits a proper root-typed object schema
+ * (`type: "object"`, `properties`, `required`) — use it directly.
+ */
+function buildInputSchema(): Record<string, unknown> {
+  const schema = z.toJSONSchema(ReasoningDoc) as Record<string, unknown>;
+  // Anthropic's input_schema is a bare JSON Schema object; the `$schema` meta
+  // key is not part of the tool contract — drop it to keep the request clean.
+  delete schema.$schema;
+  return schema;
+}
 
 /**
  * The submit_rating tool. Description doubles as the system instruction
@@ -20,8 +42,10 @@ import { ReasoningDoc } from "../schema.js";
  * facts the engine supplies are wrapped in <facts>...</facts> tags so
  * the model can reliably distinguish DATA from INSTRUCTIONS (T-2-05).
  *
- * `strict: true` tells Anthropic to enforce the input_schema strictly,
- * which eliminates an entire class of one-retry costs (RESEARCH §4 tip).
+ * Forced selection is guaranteed by the caller's
+ * tool_choice: { type: "tool", name: "submit_rating" } (synthesize.ts), and the
+ * engine re-validates the tool args against ReasoningDoc with a one-retry path,
+ * so no non-standard `strict` field is sent to the Anthropic API.
  */
 export const submitRatingTool = {
   name: "submit_rating" as const,
@@ -31,10 +55,5 @@ export const submitRatingTool = {
     "map to citations[] entries in the same dimension. The overall_rationale " +
     "synthesizes across dimensions. Do NOT fabricate facts or addresses — only cite " +
     "values present in the supplied fact list.",
-  // zod-to-json-schema's type signature targets zod v3; our schema is zod v4
-  // and structurally compatible. Cast through `unknown` to satisfy tsc.
-  input_schema: zodToJsonSchema(ReasoningDoc as unknown as Parameters<typeof zodToJsonSchema>[0], {
-    target: "openAi",
-  }) as unknown as Record<string, unknown>,
-  strict: true as const,
+  input_schema: buildInputSchema(),
 };

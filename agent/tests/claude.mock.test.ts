@@ -197,6 +197,35 @@ describe("[2-04-02a] tool schema + prompt builder", () => {
     expect(typeof submitRatingTool.input_schema).toBe("object");
   });
 
+  it("input_schema is a root-typed JSON object the Anthropic API accepts (CR-05)", () => {
+    // Regression guard for the live 400 "input_schema.type: Field required":
+    // the schema MUST be a real { type:'object', properties, required } shape,
+    // NOT a { $ref, definitions } wrapper.
+    const s = submitRatingTool.input_schema as Record<string, unknown>;
+    expect(s.type).toBe("object");
+    expect(s.properties).toBeTypeOf("object");
+    expect(Array.isArray(s.required)).toBe(true);
+    // The nine locked top-level fields must all be present + required.
+    const required = s.required as string[];
+    for (const key of [
+      "schema_version",
+      "subject",
+      "grade",
+      "confidence",
+      "dimensions",
+      "overall_rationale",
+      "generated_at",
+      "claude_model",
+      "ingest_block",
+    ]) {
+      expect(Object.keys(s.properties as object)).toContain(key);
+      expect(required).toContain(key);
+    }
+    // No $ref wrapper at the root, and no stray $schema meta key.
+    expect(s.$ref).toBeUndefined();
+    expect(s.$schema).toBeUndefined();
+  });
+
   it("submitRatingTool description mentions [N] citation markers + <facts>", () => {
     expect(submitRatingTool.description).toMatch(/\[N\]/);
     expect(submitRatingTool.description).toMatch(/<facts/);
