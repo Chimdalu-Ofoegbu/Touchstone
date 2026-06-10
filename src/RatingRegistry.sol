@@ -21,7 +21,8 @@ contract RatingRegistry {
         bytes32 reasoningHash;
         uint8 confidence;
         uint256 timestamp;
-        address agentIdentity; // Phase 1: same as agent; Phase 3: ERC-8004 identity address
+        address agentIdentity; // ERC-8004 identity address (msg.sender, the NFT holder)
+        string cid;            // D-02: IPFS pointer, written atomically with reasoningHash
     }
 
     /// @notice Canonical ERC-8004 Identity Registry the publish gate checks.
@@ -40,12 +41,15 @@ contract RatingRegistry {
     mapping(address => Rating[]) private _history;
 
     /// @notice Emitted when the agent records a rating.
+    /// @dev D-02: `cid` is emitted (cheap indexer/frontend fast path) AND stored in
+    ///      the struct (canonical contract read). Both carry the same IPFS pointer.
     event RatingPublished(
         address indexed subject,
         uint8 grade,
         bytes32 reasoningHash,
         uint8 confidence,
-        uint256 timestamp
+        uint256 timestamp,
+        string cid
     );
 
     /// @notice Emitted when anyone requests the agent rate a subject.
@@ -84,15 +88,18 @@ contract RatingRegistry {
     }
 
     /// @notice Agent publishes a rating. Reverts InvalidGrade() if grade > 9, or
-    ///         InvalidConfidence() if confidence > 100.
-    /// @dev Per CON-publishRating-signature. Phase 1 stub: records & emits, with
-    ///      grade and confidence bounds enforced on-chain. Phase 3 will add
-    ///      reasoningHash sourcing from IPFS.
+    ///         InvalidConfidence() if confidence > 100. Gated to the ERC-8004 NFT
+    ///         holder via `onlyAgent` (live ownerOf check).
+    /// @dev Per CON-publishRating-signature. `cid` (the IPFS pointer to the canonical
+    ///      reasoning JSON) is written in the SAME call as `reasoningHash` — atomically
+    ///      (D-02). There is never on-chain state holding a hash with no retrievable
+    ///      reasoning, because both land in one tx. Pass the BARE cid (no gateway URL).
     function publishRating(
         address subject,
         uint8 grade,
         bytes32 reasoningHash,
-        uint8 confidence
+        uint8 confidence,
+        string calldata cid
     ) external onlyAgent {
         if (grade > GradeEnum.MAX) revert InvalidGrade();
         if (confidence > 100) revert InvalidConfidence();
@@ -102,10 +109,11 @@ contract RatingRegistry {
             reasoningHash: reasoningHash,
             confidence: confidence,
             timestamp: block.timestamp,
-            agentIdentity: msg.sender // Phase 3: read from ERC-8004 Identity Registry
+            agentIdentity: msg.sender, // the ERC-8004 NFT holder that passed the gate
+            cid: cid
         });
         _history[subject].push(r);
-        emit RatingPublished(subject, grade, reasoningHash, confidence, block.timestamp);
+        emit RatingPublished(subject, grade, reasoningHash, confidence, block.timestamp, cid);
     }
 
     /// @notice Returns the most recent Rating for `subject`. If no rating has been
@@ -118,7 +126,7 @@ contract RatingRegistry {
     function latestRating(address subject) external view returns (Rating memory) {
         Rating[] storage h = _history[subject];
         if (h.length == 0) {
-            return Rating(address(0), 0, bytes32(0), 0, 0, address(0));
+            return Rating(address(0), 0, bytes32(0), 0, 0, address(0), "");
         }
         return h[h.length - 1];
     }

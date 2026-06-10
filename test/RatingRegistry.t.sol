@@ -26,7 +26,8 @@ contract RatingRegistryTest is Test {
         uint8 grade,
         bytes32 reasoningHash,
         uint8 confidence,
-        uint256 timestamp
+        uint256 timestamp,
+        string cid
     );
     event RatingRequested(
         address indexed subject,
@@ -60,14 +61,14 @@ contract RatingRegistryTest is Test {
         _mockGateOwner(agent); // ownerOf returns the real agent...
         vm.prank(nonAgent); // ...but a different address calls
         vm.expectRevert(RatingRegistry.NotAgent.selector);
-        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(1)), 100);
+        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(1)), 100, "bafytest");
     }
 
     /// 3-01-02 — ownerOf gate succeeds for the NFT holder (mocked ownerOf → agent).
     function test_publishRating_succeedsForAgent() public {
         _mockGateOwner(agent);
         vm.prank(agent);
-        registry.publishRating(subject, GradeEnum.BBB, bytes32(uint256(1)), 80);
+        registry.publishRating(subject, GradeEnum.BBB, bytes32(uint256(1)), 80, "bafytest");
     }
 
     /// 1-02-02 — Grade enum 0-9 maps AAA-D, reverts above 9 (under the ownerOf gate).
@@ -75,16 +76,16 @@ contract RatingRegistryTest is Test {
         _mockGateOwner(agent);
         vm.startPrank(agent);
         // Boundary: grade == 0 (AAA) is allowed (lower-boundary symmetry per IN-04).
-        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(1)), 50);
+        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(1)), 50, "bafytest");
 
         // Boundary: grade == 9 (D) is allowed.
-        registry.publishRating(subject, GradeEnum.D, bytes32(uint256(2)), 50);
+        registry.publishRating(subject, GradeEnum.D, bytes32(uint256(2)), 50, "bafytest");
         RatingRegistry.Rating memory latest = registry.latestRating(subject);
         assertEq(latest.grade, uint8(9));
 
         // Boundary: grade == 10 reverts.
         vm.expectRevert(RatingRegistry.InvalidGrade.selector);
-        registry.publishRating(subject, 10, bytes32(uint256(3)), 50);
+        registry.publishRating(subject, 10, bytes32(uint256(3)), 50, "bafytest");
         vm.stopPrank();
     }
 
@@ -93,19 +94,19 @@ contract RatingRegistryTest is Test {
         _mockGateOwner(agent);
         vm.startPrank(agent);
         // Boundary: confidence == 0 is allowed.
-        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(1)), 0);
+        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(1)), 0, "bafytest");
         // Boundary: confidence == 100 is allowed.
-        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(2)), 100);
+        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(2)), 100, "bafytest");
         RatingRegistry.Rating memory latest = registry.latestRating(subject);
         assertEq(latest.confidence, uint8(100));
 
         // Boundary: confidence == 101 reverts.
         vm.expectRevert(RatingRegistry.InvalidConfidence.selector);
-        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(3)), 101);
+        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(3)), 101, "bafytest");
 
         // Boundary: confidence == 255 (uint8 max) reverts.
         vm.expectRevert(RatingRegistry.InvalidConfidence.selector);
-        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(4)), 255);
+        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(4)), 255, "bafytest");
         vm.stopPrank();
     }
 
@@ -127,12 +128,14 @@ contract RatingRegistryTest is Test {
         assertEq(empty.timestamp, uint256(0));
         assertEq(empty.subject, address(0));
         assertEq(empty.grade, uint8(0));
+        // Empty sentinel carries cid == "" (positional ctor gained the trailing "").
+        assertEq(empty.cid, "");
 
         // Publish two ratings; latestRating must return the second.
         _mockGateOwner(agent);
         vm.startPrank(agent);
-        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(1)), 90);
-        registry.publishRating(subject, GradeEnum.BBB, bytes32(uint256(2)), 75);
+        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(1)), 90, "bafyfirst");
+        registry.publishRating(subject, GradeEnum.BBB, bytes32(uint256(2)), 75, "bafysecond");
         vm.stopPrank();
         RatingRegistry.Rating memory latest = registry.latestRating(subject);
         assertEq(latest.grade, uint8(3)); // BBB
@@ -141,6 +144,18 @@ contract RatingRegistryTest is Test {
         assertEq(latest.subject, subject);
         // agentIdentity is msg.sender, which under the gate is the pranked agent.
         assertEq(latest.agentIdentity, agent);
+    }
+
+    /// 3-01-03 — cid round-trips through latestRating (D-02: the IPFS pointer is a
+    ///           first-class on-chain field, written atomically with reasoningHash).
+    function test_latestRating_returnsCid() public {
+        _mockGateOwner(agent);
+        vm.prank(agent);
+        registry.publishRating(subject, GradeEnum.BBB, bytes32(uint256(7)), 80, "bafyxyz");
+        RatingRegistry.Rating memory latest = registry.latestRating(subject);
+        assertEq(latest.cid, "bafyxyz");
+        // hash + cid land in the SAME call — both present, never a hash with no pointer.
+        assertEq(latest.reasoningHash, bytes32(uint256(7)));
     }
 
     /// 1-02-05 — ratingHistory returns full timeline.
@@ -152,9 +167,9 @@ contract RatingRegistryTest is Test {
         // Publish three; ratingHistory must return all three in order.
         _mockGateOwner(agent);
         vm.startPrank(agent);
-        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(1)), 95);
-        registry.publishRating(subject, GradeEnum.AA,  bytes32(uint256(2)), 88);
-        registry.publishRating(subject, GradeEnum.A,   bytes32(uint256(3)), 80);
+        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(1)), 95, "bafytest");
+        registry.publishRating(subject, GradeEnum.AA,  bytes32(uint256(2)), 88, "bafytest");
+        registry.publishRating(subject, GradeEnum.A,   bytes32(uint256(3)), 80, "bafytest");
         vm.stopPrank();
         RatingRegistry.Rating[] memory history = registry.ratingHistory(subject);
         assertEq(history.length, 3);
