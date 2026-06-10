@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 02 code-complete + verified (4/4) + live UAT passed in-session; HOLDING for user's own live re-run before close
-last_updated: "2026-06-10T13:25:00.000Z"
+status: Ready to plan
+last_updated: "2026-06-10T12:43:09.057Z"
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 3
-  percent: 38
+  completed_plans: 8
+  percent: 100
 ---
 
 # STATE.md — Touchstone
@@ -20,20 +20,23 @@ progress:
 
 - **Project:** Touchstone
 - **Core value:** Credit-ratings agent for on-chain RWA assets on Mantle. Ingests risk data, scores deterministic dimensions, uses Claude to synthesize a letter grade (AAA–D) with cited rationale, publishes on-chain under an ERC-8004 identity with a verifiable reasoning hash. Moody's of the agentic economy.
-- **Current focus:** Phase 02 — rating-engine-core
+- **Current focus:** Phase 03 — on-chain publish + ERC-8004 + historical reconstruction start
 - **Ship target:** 2026-06-12 (user). Buffer: 2026-06-13. Official deadline: 2026-06-15.
-- **Today:** 2026-06-07.
+- **Today:** 2026-06-10 (Day 4 of the 5-day user target; Phases 1+2 complete).
 
 ## Current Position
 
-Phase: 02 (rating-engine-core) — EXECUTED (5/5 plans) + code review + gap closure + re-verify DONE. VERIFICATION = human_needed (4/4 success criteria code-verified). NOT marked complete — user chose to HOLD for live UAT (2026-06-10).
-Plan: 5/5 SUMMARYs merged. 190-test vitest suite green + tsc clean (mock mode). Phase 1 forge suite 6/6 still green (no regression).
+Phase: 3
+Plan: Not started
 Code review (02-REVIEW.md) found 4 blockers on the cross-phase hash/provenance contract; verifier independently REPRODUCED all 4; ALL 4 FIXED inline this session (each an atomic root-cause-named commit) and re-verified CLOSED against live code:
+
   - CR-01 (SC-2) FIXED commit df2e254: synthesize.ts now rebuilds dimensions[] from engine BandResults (score/band_hit/missing_facts) in canonical key order; only rationale+citations are Claude's. Proven by [2-04-02e] divergent-score test.
   - CR-02 (SC-4) FIXED commit 25c789d: rpc.ts resolveBlockNumber() + 3 adapters thread one concrete resolved block into multiread AND ingestBlock (no more `:0` while reading latest). 3 adapter tests assert resolved head stamped.
   - CR-04 (SC-4) FIXED commit 27692f8: rate.ts getBlockTimestampSeconds(blockNumber: bigint) reads getBlock({blockNumber}) at BigInt(facts.ingestBlock) — no 2nd latest snapshot.
   - CR-03 (security) FIXED commit d334286: redactRpcError wired into multicall.ts/rate.ts/rpc.ts + redactRpcUrl at cli.ts boundary; wiring tripwire test enforces it.
+
 LIVE UAT: PASSED in-session at Mantle Mainnet block 96481000 (model claude-opus-4-8) — 02-HUMAN-UAT.md status:passed.
+
   - A 5th blocker surfaced ONLY on the live path and was fixed: CR-05 (commit 7cdff79) — submit_rating input_schema was built by zod-to-json-schema v3 (incompatible with zod v4), emitting {$ref,definitions} with no top-level type → Anthropic 400 "input_schema.type: Field required". Fixed via zod v4 native z.toJSONSchema(); removed non-standard `strict` field; strengthened tool-schema test. Mock suite couldn't catch it (mock client doesn't validate schema like the real API).
   - SC-3 (citation rigor) PASS: USDY @96481000 → BBB, confidence 80, every rationale cites specific [N] facts; engine band scores (85/30/55/92) appear in doc (CR-01 confirmed live).
   - SC-4 (determinism) PASS with corrected expectation: NOT "two live runs identical" (Claude prose varies by design); the real contract is re-hash of a FIXED document — computeReasoningHash(stored live doc) reproduced published hash 0xa522477b…, canonical bytes stable. = Phase 4 verify path.
@@ -51,7 +54,7 @@ TO CLOSE once user confirms their re-run: `gsd-sdk query phase.complete 02` + co
 ## Performance Metrics
 
 - **Phases planned:** 5
-- **Phases complete:** 1
+- **Phases complete:** 2
 - **Requirements mapped:** 15/15 (100% coverage)
 - **v1 requirements:** 15
 - **v2 deferred:** 5

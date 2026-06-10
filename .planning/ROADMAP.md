@@ -7,7 +7,7 @@
 ## Phases
 
 - [x] **Phase 1: Lock + Skeleton** (Day 1, 2026-06-08) — Phase 0 verification (subjects, ERC-8004, 2025 failure, prize allocation) AND deploy verified `RatingRegistry.sol` skeleton on Mantle with stub `requestRating` → stub `publishRating`. **Complete 2026-06-08** (+ post-review WR-01/WR-02/WR-03/WR-04 hardening redeploy same day). Canonical Sepolia address `0x54163E309f7C8108F7110B086F640882a97f3838`, verified on Mantlescan. Smoke `requestRating` tx from non-agent wallet confirmed. 20 Project Deployment Award technical bar CLEARED. Superseded Phase 1.0 deploy at `0x0912bcBd57579179388cE9d4863032406dCfBe18` left on-chain as historical record. See `.planning/phases/01-lock-skeleton/01-03-DEPLOYMENT.md`.
-- [ ] **Phase 2: Rating Engine Core** (Day 2, 2026-06-09) — Data ingestion, four deterministic scoring modules, Claude reasoning step. Hardcode three subjects.
+- [x] **Phase 2: Rating Engine Core** (Day 2, 2026-06-09) — Data ingestion, four deterministic scoring modules, Claude reasoning step. Hardcode three subjects. **Complete 2026-06-10** — 5/5 plans; off-chain `rate()` engine + `pnpm rate` CLI; 191 tests green. Code review found 4 hash/provenance blockers + a 5th live-only blocker (CR-05) — all fixed inline (CR-01..CR-05). Live UAT passed at Mantle block 96481000 (USDY→BBB, cited rationale; re-hash reproduces published hash). See `02-VERIFICATION.md` + `02-HUMAN-UAT.md`.
 - [ ] **Phase 3: On-Chain Publish + ERC-8004 + Historical Reconstruction Start** (Day 3, 2026-06-10) — Real `publishRating`, IPFS pinning, agent identity NFT mint, `latestRating`/`ratingHistory` reads. Begin pre-failure state reconstruction.
 - [ ] **Phase 4: Frontend (3 Screens) + Historical Proof Finish** (Day 4, 2026-06-11) — Ratings terminal, reasoning drill-down, track-record view with finished historical-downgrade proof.
 - [ ] **Phase 5: Ship** (Day 5, 2026-06-12) — Record ≥ 2-minute demo video, write README with deployed addresses, DoraHacks submission, AI x RWA + AI Alpha & Data nominations, final QA. No new building.
@@ -86,7 +86,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Lock + Skeleton | 3/3 | Complete | 2026-06-08 |
-| 2. Rating Engine Core | 0/5 | Planned | - |
+| 2. Rating Engine Core | 5/5 | Complete | 2026-06-10 |
 | 3. On-Chain Publish + ERC-8004 + Historical Start | 0/0 | Not started | - |
 | 4. Frontend (3 Screens) + Historical Finish | 0/0 | Not started | - |
 | 5. Ship | 0/0 | Not started | - |

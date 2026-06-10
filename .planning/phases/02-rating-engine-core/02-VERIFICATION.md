@@ -1,8 +1,9 @@
 ---
 phase: 02-rating-engine-core
-verified: 2026-06-10T12:25:00Z
-status: human_needed
-score: 4/4 success criteria code-verified (2 of 4 carry a live-eyeball human item)
+verified: 2026-06-10T13:25:00Z
+status: passed
+score: 4/4 success criteria verified (live UAT passed in-session at block 96481000 — see 02-HUMAN-UAT.md)
+human_uat_result: "passed 2026-06-10 — SC-3 citation rigor + SC-4 re-hash determinism confirmed live (USDY→BBB). A 5th live-only blocker CR-05 (submit_rating input_schema missing type:object, Anthropic 400) was found during live UAT and fixed (commit 7cdff79)."
 overrides_applied: 0
 re_verification:
   previous_status: gaps_found
