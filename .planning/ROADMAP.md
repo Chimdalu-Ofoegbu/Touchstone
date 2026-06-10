@@ -54,11 +54,11 @@
   3. `latestRating(subject)` and `ratingHistory(subject)` return the published `Rating` struct (subject, grade, reasoningHash, confidence, timestamp, agentIdentity) for at least one subject end-to-end.
   4. Pre-failure on-chain state for the Phase-1-selected 2025 failure is reconstructed and ready for the Phase 4 historical-downgrade proof run.
 **Plans:** 6 plans
-- [ ] 03-01-PLAN.md — IIdentityRegistry ownerOf gate (negative test FIRST) + string cid in struct/event/signature + Deploy.s.sol (REQ-02, REQ-03)
-- [ ] 03-02-PLAN.md — agent write infra: walletClient + byte-exact pin(canonical) + registry-abi (REQ-04)
+- [x] 03-01-PLAN.md — IIdentityRegistry ownerOf gate (negative test FIRST) + string cid in struct/event/signature + Deploy.s.sol (REQ-02, REQ-03)
+- [x] 03-02-PLAN.md — agent write infra: walletClient + byte-exact pin(canonical) + registry-abi (REQ-04)
 - [ ] 03-03-PLAN.md — LIVE: mint ERC-8004 identity (register) + once-only Mainnet redeploy + ABI freeze (REQ-02, REQ-03)
 - [ ] 03-04-PLAN.md — shared publishRatingFor pipeline (rate→pin→publishRating) + manual publish-rating CLI (REQ-02, REQ-04)
-- [ ] 03-05-PLAN.md — Elixir deUSD historical fixture rated by the UNMODIFIED engine + captured artifact (REQ-06 start)
+- [x] 03-05-PLAN.md — Elixir deUSD historical fixture rated by the UNMODIFIED engine + captured artifact (REQ-06 start)
 - [ ] 03-06-PLAN.md — RatingRequested watcher daemon (dedupe/reconnect/heartbeat) + LIVE Mainnet end-to-end (REQ-02)
 
 ### Phase 4: Frontend (3 Screens) + Historical Proof Finish
