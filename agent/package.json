@@ -11,6 +11,9 @@
   },
   "scripts": {
     "rate": "tsx --env-file-if-exists=../.env src/cli.ts",
+    "mint-identity": "tsx --env-file-if-exists=../.env src/mint-identity.ts",
+    "publish-rating": "tsx --env-file-if-exists=../.env src/publish-cli.ts",
+    "watch": "tsx --env-file-if-exists=../.env src/watch.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:live": "RUN_LIVE=1 vitest run --reporter=verbose",
@@ -20,6 +23,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.102.0",
     "canonicalize": "^3.0.0",
+    "pinata": "^2.5.6",
     "viem": "^2.52.2",
     "zod": "^4.4.3"
   },
