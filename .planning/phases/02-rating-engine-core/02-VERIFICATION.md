@@ -1,159 +1,98 @@
 ---
 phase: 02-rating-engine-core
-verified: 2026-06-10T11:45:00Z
-status: gaps_found
-score: 2/4 success criteria fully verified (2 partial)
+verified: 2026-06-10T12:25:00Z
+status: human_needed
+score: 4/4 success criteria code-verified (2 of 4 carry a live-eyeball human item)
 overrides_applied: 0
 re_verification:
-gaps:
-  - truth: "Four deterministic scoring modules each emit a 0-100 score per subject, implemented as code separate from the LLM step (SC-2 / CON-deterministic-vs-llm-separation). The deterministic scores must be the numbers that appear in the published, hashed reasoning document."
-    status: failed
-    reason: >
-      CR-01 CONFIRMED. The four deterministic scorers exist and run, but their
-      BandResults are fed ONLY into the Claude prompt — they are never written
-      back into doc.dimensions. synthesizeRating() spreads `...parsed` (Claude's
-      output) and overrides only grade, confidence, generated_at, claude_model,
-      ingest_block. dimensions[].score and band_hit pass through from Claude
-      verbatim. Independent proof (mock client returning score:70 while the engine
-      computed 42) showed doc.dimensions[collateral].score === 70 (Claude's), NOT
-      42 (engine's). The published per-dimension numbers are LLM output, breaking
-      CON-deterministic-vs-llm-separation in the output artifact and making the
-      reasoning hash non-deterministic across live runs (violates plan 02-04
-      must_have truth #5: "byte-identical canonical string AND identical hash").
-      The 185-test mock suite never catches this because the mock hard-codes
-      score:70 and hash-determinism.test.ts uses hand-authored fixed docs.
-    artifacts:
-      - path: "agent/src/claude/synthesize.ts:185-192"
-        issue: "`overridden` spreads ...parsed and overrides 5 scalar fields only; dimensions[] (incl. score, band_hit) is Claude's, never the engine's BandResults"
-      - path: "agent/src/rate.ts:254-267"
-        issue: "BandResults passed as `scores` to synthesizeRating (prompt input) but never reconciled back into doc.dimensions"
-      - path: "agent/src/claude/prompt.ts:113"
-        issue: "Prompt instructs Claude 'already computed — do NOT recompute' but nothing enforces it; Claude still authors dimensions[].score in the tool call"
-    missing:
-      - "In synthesizeRating, after zod parse, override each dimension's score / band_hit / missing_facts from the engine BandResult keyed by `key` (pass the four BandResults into synthesizeRating). Reject if Claude dropped/duplicated a dimension key."
-      - "Add a LIVE (or mock-with-divergent-score) determinism test: feed a mock that returns a per-dimension score different from the engine's deterministic score and assert the doc carries the engine number — the inverse of the current mock that hard-codes 70."
-  - truth: "The engine can be invoked locally for any subject and returns a complete reasoning JSON whose ingest_block and provenance are faithful and reproducible (SC-4 + D-04 no-latest-leak)."
-    status: failed
-    reason: >
-      CR-02 + CR-04 CONFIRMED. On a live run WITHOUT --block, rate() calls
-      adapter(undefined) -> multiread(reads, undefined), and viem reads chain
-      head (`latest`). But each adapter stamps `ingestBlock = blockNumber !==
-      undefined ? Number(blockNumber) : 0`, so ingest_block, every
-      Fact.source.blockNumber, every citation block_number, and priceAtBlock(0)
-      all record block 0 while the data came from `latest`. This is the exact
-      `latest` leak D-04 forbids. Independently, getBlockTimestampSeconds(undefined)
-      calls getBlock({}) which also reads `latest` — a second, independent
-      `latest` snapshot driving generated_at. Two consecutive live default-block
-      runs are therefore non-deterministic (different latest, same stamped block 0)
-      and Phase 4 replay against ingest_block:0 reads genesis-era state, never
-      reproducing the live hash. The no-latest-leak tripwire is a source-text grep
-      that never exercises this runtime default path, so the suite stays green.
-    artifacts:
-      - path: "agent/src/subjects/usdy.ts:64"
-        issue: "`ingestBlock = blockNumber !== undefined ? Number(blockNumber) : 0` stamps 0 while multiread(round1, undefined) reads latest"
-      - path: "agent/src/subjects/cmeth.ts:59"
-        issue: "same default-to-0; also feeds priceAtBlock(0)"
-      - path: "agent/src/subjects/fbtc.ts:62"
-        issue: "same default-to-0; also feeds priceAtBlock(0)"
-      - path: "agent/src/rate.ts:138-140"
-        issue: "getBlockTimestampSeconds(undefined) -> getBlock({}) reads latest independently of the fact-read block (CR-04)"
-    missing:
-      - "Resolve a concrete block in rate() BEFORE any read: `const resolvedBlock = opts.blockNumber ?? (opts.mock ? MOCK_BLOCK : await publicClient.getBlockNumber())`, then call adapter(resolvedBlock) and getBlockTimestampSeconds(resolvedBlock) so reads, ingest_block, citations, prices, and timestamp all pin to the same block — never 0."
-      - "Make the adapter signature require a concrete bigint (or fall back to the resolved value, never literal 0)."
-      - "Replace/augment the source-grep no-latest-leak tripwire with a runtime test asserting ingest_block equals the block actually read on the default path."
-  - truth: "RPC URL (which may carry an Alchemy/Infura API key) is redacted on the live error path (T-2-03 secret-safety, supports SC-4 'invoked locally' safely)."
-    status: failed
-    reason: >
-      CR-03 CONFIRMED. redactRpcUrl() is defined in rpc.ts and unit-tested, but
-      grep across agent/src shows ZERO production call sites — the only call is in
-      tests/subjects/static.test.ts. The sole catch in src (cli.ts:97-98) writes
-      e.message raw to stderr; its comment claims the message is already scrubbed,
-      but synthesize.ts scrubs only ANTHROPIC_API_KEY. A live RPC failure thrown
-      from multiread/getBlock carries MANTLE_RPC_URL (file docs note it may embed
-      an API key) and viem error strings routinely embed the transport URL, so the
-      keyed URL reaches stderr un-redacted. multicall.ts:50 wraps the
-      publicClient.multicall call in no try/catch, so a transport throw propagates
-      raw to the CLI. T-2-03 is documented-but-not-enforced.
-    artifacts:
-      - path: "agent/src/cli.ts:97-98"
-        issue: "catch writes e.message raw; redactRpcUrl not imported or applied"
-      - path: "agent/src/rpc.ts:30-33"
-        issue: "redactRpcUrl defined and tested but called by zero production sites (grep-confirmed)"
-      - path: "agent/src/multicall.ts:50"
-        issue: "publicClient.multicall not wrapped — transport throw carries keyed URL upward unredacted"
-    missing:
-      - "Route the cli.ts catch (and any logging) through redactRpcUrl + the Anthropic scrubber before writing to stderr."
-      - "Wrap the live RPC boundary in multicall.ts / rate.ts (getBlock, getBlockNumber, multicall) so the keyed URL is redacted at the boundary that owns it, with stage context."
+  previous_status: gaps_found
+  previous_score: 2/4
+  gaps_closed:
+    - "CR-01 (SC-2): engine BandResult dimension scores now bound into the hashed doc (synthesize.ts rebuild), proven by divergent-score test [2-04-02e]"
+    - "CR-02 (SC-4): adapters resolve a concrete block once via resolveBlockNumber and stamp it into both multiread and ingestBlock — no ingest_block=0 while reading latest; proven by 3 runtime adapter tests"
+    - "CR-04 (SC-4): getBlockTimestampSeconds reads getBlock({ blockNumber }) at BigInt(facts.ingestBlock), param is bigint (not optional) — no second latest snapshot"
+    - "CR-03 (security): redactRpcError/redactRpcUrl now CALLED in multicall.ts, rate.ts, rpc.ts, cli.ts — wiring tripwire test enforces it"
+  gaps_remaining: []
+  regressions: []
 deferred: []
 human_verification:
-  - test: "Citation-rigor eyeball on a LIVE run: run `pnpm rate USDY --block <recent>` (and cmETH, FBTC) with a real ANTHROPIC_API_KEY + MANTLE_RPC_URL, then read each dimension rationale."
-    expected: "Every claim names a specific data point from the <facts> block (TVL value, owner address, paused flag, price) — no generic 'the collateral is strong' statements. Grades show a distinguishable mix across the three subjects (not three identical AAAs)."
-    why_human: "Requires a live Anthropic call (skipped in CI/worktree per 02-05 SUMMARY Task 2-05-03 auto-approval) and subjective judgement of rationale specificity that grep cannot assess."
-  - test: "Live determinism: after the CR-01/CR-02/CR-04 fixes land, run `pnpm rate USDY --block <fixed N>` twice and diff the reasoningHash."
-    expected: "Byte-identical reasoningHash across both live runs at the same pinned block (T-2-06 on the live path, not just mock)."
-    why_human: "The current mock harness cannot prove live determinism — it hard-codes dimension score:70. Confirming the contract on the live model path needs a real API key."
+  - test: "Live citation-rigor eyeball: run `pnpm rate USDY --block <recent>` (and cmETH, FBTC) with a real ANTHROPIC_API_KEY + MANTLE_RPC_URL, then read each dimension rationale."
+    expected: "Every claim names a specific data point from the <facts> block (TVL value, owner address, paused flag, price). Grades show a distinguishable mix across the three subjects (not three identical AAAs)."
+    why_human: "Requires a live Anthropic call (skipped in CI/worktree per 02-05 SUMMARY Task 2-05-03) and subjective judgement of rationale specificity that grep cannot assess. SC-3."
+  - test: "Live two-run determinism: run `pnpm rate USDY --block <fixed N>` twice live and diff the reasoningHash."
+    expected: "Byte-identical reasoningHash across both live runs at the same pinned block (T-2-06 on the live model path, not just mock)."
+    why_human: "The code path that makes this byte-identical (engine-bound dimensions + pinned block + pinned timestamp) is now verified and mock-proven, but final confirmation on the live model path needs a real API key."
 ---
 
 # Phase 2: Rating Engine Core — Verification Report
 
 **Phase Goal:** A standalone off-chain rating engine produces grades + reasoning for the three committed subjects (USDY, cmETH, FBTC), with deterministic and LLM steps inspectably separated.
-**Verified:** 2026-06-10T11:45:00Z
-**Status:** gaps_found
-**Re-verification:** No — initial verification
+**Verified:** 2026-06-10T12:25:00Z
+**Status:** human_needed
+**Re-verification:** Yes — after inline gap closure for the 4 determinism/security blockers (CR-01, CR-02, CR-03, CR-04).
+
+## Re-Verification Summary
+
+The prior verification (status `gaps_found`, score 2/4) confirmed 4 CRITICAL blockers from 02-REVIEW.md. Four atomic fix commits have since landed on master. Each fix was re-checked **independently against the live source and the live test suite** — not the commit messages. **All four blockers are genuinely closed.** The full suite is **190/190 green** (22 files) and `tsc --noEmit` exits 0 — both re-run during this verification, not taken on report.
+
+| Blocker | Prior | Now | Code Evidence | Test Evidence |
+|---------|-------|-----|---------------|---------------|
+| CR-01 (SC-2) | ✗ FAILED | ✓ CLOSED | `synthesize.ts:213-254` rebuilds `dimensions[]` from engine `BandResult`s keyed by canonical key; `score`/`band_hit`/`missing_facts` ← engine, only `rationale`+`citations` ← Claude; canonical key order enforced (`CANONICAL_DIMENSION_KEYS`, l.61-66, 236); drop/dup keys rejected (l.225-242) | `[2-04-02e]` (3 cases): engine 85/62/50/41 published over Claude's 70; canonical order on shuffle; throws on dup/drop — all pass |
+| CR-02 (SC-4) | ✗ FAILED | ✓ CLOSED | `rpc.ts:37-46` `resolveBlockNumber()` resolves head once; all 3 adapters (`usdy.ts:66-69`, `cmeth.ts:61-65`, `fbtc.ts:64-68`) thread the SAME `resolvedBlockNumber` into both `multiread()` and `ingestBlock`; **zero `: 0` defaults remain** (grep-confirmed) | 3 runtime adapter tests "resolves chain head and stamps THAT block (never 0)…": `ingestBlock === 88_000_000`, `multiread` received the resolved block, every onchain fact carries it — all pass |
+| CR-04 (SC-4) | ✗ FAILED | ✓ CLOSED | `rate.ts:140-153` `getBlockTimestampSeconds(blockNumber: bigint, …)` calls `getBlock({ blockNumber })`; invoked at `rate.ts:250-253` with `BigInt(facts.ingestBlock)`; param is `bigint` (not optional); **no `getBlock({})` (latest) remains** (grep-confirmed, only in a comment) | Covered transitively by rate() determinism + golden hash tests; param-type enforced by `tsc` (exit 0) |
+| CR-03 (security) | ✗ FAILED | ✓ CLOSED | `redactRpcError` CALLED in `multicall.ts:62`, `rate.ts:150`, `rpc.ts:44`; `redactRpcUrl` CALLED in `cli.ts:102` — no longer zero production sites | `static.test.ts:131-148` wiring tripwire asserts the redactor symbol is present in all 4 production files + `redactRpcError` scrub test — both pass |
 
 ## Goal Achievement
 
-The engine scaffold, adapters, four deterministic scorers, Claude tool-use synthesis, schema, canonicalize+keccak256 hash chain, CLI, and 185-test mock suite all exist and pass. TypeScript strict typecheck is clean (`tsc --noEmit` exit 0). The deterministic and LLM steps ARE file-separated (`agent/src/dimensions/*` vs `agent/src/claude/*`).
+The engine scaffold, adapters, four deterministic scorers, Claude tool-use synthesis, schema, canonicalize+keccak256 hash chain, CLI, and now a **190**-test suite all exist and pass. The deterministic and LLM steps are file-separated (`agent/src/dimensions/*` vs `agent/src/claude/*`) AND — the key fix — the deterministic separation is now **preserved in the hashed output artifact**: the published per-dimension numbers are the engine's, not the LLM's. The default (no `--block`) live path now resolves one concrete head and pins reads, `ingest_block`, citations, prices, and `generated_at` to that same block.
 
-However, the central cross-phase contract — hash determinism + faithful provenance — is breached on the LIVE (non-mock) path. **All four CRITICAL findings from 02-REVIEW.md are independently CONFIRMED.** The full test suite is green only because every test runs in mock mode, where the bugs are structurally invisible (the mock hard-codes dimension `score: 70`, the no-latest-leak test is a source-text grep, and the live human-verify checkpoint was auto-skipped for lack of an API key per 02-05 SUMMARY Task 2-05-03).
+What remains is genuinely human-only: two live-API checks that need a real `ANTHROPIC_API_KEY` (subjective citation-rigor eyeball for SC-3, and a live two-run hash diff). The code that makes both pass is verified and mock-proven; only the live-model confirmation is pending. Per the status decision tree, a non-empty human-verification section means status is `human_needed`, not `passed`.
 
 ### Observable Truths (ROADMAP Success Criteria)
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| SC-1 | Engine ingests on-chain data (TVL/volatility, oracle config, collateral, holder/contract, verified source) for each subject | ✓ VERIFIED (with provenance caveat) | 3 adapters (usdy/cmeth/fbtc.ts) batch ERC-20 + paused + owner via `multiread` → SubjectFacts grouped by 4 dimensions; static facts versioned. Ingestion works; but ingest_block provenance is corrupted on the default live path (see SC-4 / CR-02). |
-| SC-2 | Four deterministic scoring modules each emit 0-100 per subject, implemented as code separate from the LLM step | ✗ FAILED | 4 scorers exist and are file-separated from `claude/`, AND `dimensions/synthesize.ts` computes the deterministic overall/grade/confidence. BUT the per-dimension `score`/`band_hit` that land in the published, hashed document are Claude's numbers, not the engine's (CR-01, proven: engine 42 → doc shows Claude's 70). The deterministic-vs-LLM separation does not hold in the output artifact. |
-| SC-3 | Claude synthesizes 4 scores into a letter grade (AAA-D) + per-dimension cited rationale, every claim naming a specific data point | ⚠️ PARTIAL (human eval needed) | Forced tool-use (`tool_choice {type:tool,name:submit_rating}`), grade/confidence engine-overridden correctly, prompt wraps facts in `<facts>` and demands `[N]` citations, `validateCitations` rejects fabricated addresses. "Every claim names a specific data point (no generic statements)" needs a live-run eyeball — auto-skipped in execution (02-05 Task 2-05-03). |
-| SC-4 | Engine invokable locally for any subject, returns complete reasoning JSON (per-dim scores + rationales + grade + confidence + overall rationale) matching the agreed schema | ✗ FAILED (mock-only; live non-deterministic) | `rate()` + `pnpm rate <SUBJECT> --mock` produce schema-valid JSON for all 3 subjects (185 tests pass). BUT the live default path stamps `ingest_block: 0` while reading `latest` (CR-02), derives `generated_at` from a second independent `latest` snapshot (CR-04), and embeds LLM-variable dimension scores (CR-01) — so the live JSON is non-deterministic and its provenance is unfaithful. Live path was never executed. |
+| SC-1 | Engine ingests on-chain data (TVL/volatility, oracle config, collateral, holder/contract, verified source) for each subject | ✓ VERIFIED | 3 adapters (usdy/cmeth/fbtc.ts) batch ERC-20 + paused + owner via `multiread` → `SubjectFacts` grouped into 4 dimensions; static facts versioned (1.0.0). Provenance is now faithful: `ingest_block` and every `Fact.source.blockNumber` carry the resolved concrete block (CR-02 fix), proven by 3 runtime adapter tests. |
+| SC-2 | Four deterministic scoring modules each emit 0-100 per subject, implemented as code separate from the LLM step | ✓ VERIFIED | 4 scorers file-separated from `claude/`; `dimensions/synthesize.ts` computes overall/grade/confidence deterministically. **CR-01 fix:** `claude/synthesize.ts` now REBUILDS `dimensions[]` from the engine `BandResult`s (score/band_hit/missing_facts), discarding Claude's numbers. Proven inverse-of-mock test `[2-04-02e]`: engine 85/62/50/41 → doc shows 85/62/50/41 (not Claude's 70). The deterministic-vs-LLM separation now holds in the published, hashed artifact. |
+| SC-3 | Claude synthesizes 4 scores into a letter grade (AAA-D) + per-dimension cited rationale, every claim naming a specific data point | ⚠️ PARTIAL — human eyeball pending | Forced tool-use (`tool_choice {type:tool,name:submit_rating}`), grade/confidence engine-overridden, prompt wraps facts in `<facts>` and demands `[N]` citations, `validateCitations` rejects fabricated addresses (test passes). "Every claim names a specific data point (no generic statements)" + "distinguishable grade mix" need a live-run eyeball — auto-skipped in CI/worktree (02-05 Task 2-05-03). Routed to human verification. |
+| SC-4 | Engine invokable locally for any subject, returns complete reasoning JSON matching the agreed schema | ✓ VERIFIED (code) — live determinism eyeball pending | `rate()` + `pnpm rate <SUBJECT>` produce schema-valid JSON for all 3 subjects (190 tests). **CR-02 fix:** default path resolves one concrete head and stamps it everywhere (no `ingest_block:0`). **CR-04 fix:** `generated_at` derives from `getBlock({ blockNumber })` at the SAME ingest block (no second `latest`). **CR-01 fix:** dimension scores are engine-deterministic. The doc is now deterministic by construction on the live path; final live two-run hash diff is routed to human verification. |
 
-**Score:** 2/4 success criteria fully verified; SC-2 and SC-4 FAILED; SC-3 partial pending human citation-rigor check.
+**Score:** 4/4 success criteria code-verified. SC-2 and SC-4 are FULLY closed at the code+test level (was FAILED). SC-3 and SC-4 each carry one live-API human item (citation-rigor eyeball; live two-run determinism diff).
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `agent/src/constants/grade-enum.ts` | uint8 mirror of GradeEnum.sol | ✓ VERIFIED | AAA=0, D=9, MAX=9 — byte-for-byte match to Solidity |
-| `agent/src/schema.ts` | zod ReasoningDocument, on-chain bounds | ✓ VERIFIED | grade.uint8 0..9, confidence 30..100, chain_id literal 5000, dimensions length 4 |
-| `agent/src/subjects/{usdy,cmeth,fbtc}.ts` | per-subject adapters, block-pinned | ⚠️ ORPHANED-PROVENANCE | Exist + wired; but default-block path stamps ingest_block 0 (CR-02) |
-| `agent/src/multicall.ts` | multiread, allowFailure → missing_facts | ✓ VERIFIED (redaction gap) | Threads blockNumber; no try/catch redaction at RPC boundary (CR-03) |
-| `agent/src/dimensions/{4 scorers}.ts` + `synthesize.ts` | banded 0-100 scorers + 25% combine | ✓ VERIFIED (as code) | All 4 + synthesize exist, file-separated; deterministic numbers computed — but not bound into published doc (CR-01) |
-| `agent/src/claude/synthesize.ts` | forced tool-use, engine overrides | ✗ STUB-OF-CONTRACT | Overrides 5 scalar fields; does NOT override dimensions[] score/band_hit (CR-01) |
-| `agent/src/claude/prompt.ts` | facts in `<facts>` tags, citation demand | ✓ VERIFIED | Sanitizes C0 controls, caps 256, wraps `<facts>`, demands `[N]` cites |
-| `agent/src/hash.ts` | canonicalize + keccak256 | ✓ VERIFIED | RFC 8785 JCS via `canonicalize`; keccak256(toBytes(...)) |
-| `agent/src/rate.ts` | orchestrator + validateCitations | ⚠️ WIRED-BUT-LEAKY | Full pipeline wired; passes BandResults to prompt only; getBlockTimestampSeconds reads latest (CR-04) |
-| `agent/src/cli.ts` | pnpm rate, 3 subjects, --mock/--block | ✓ VERIFIED (redaction gap) | Allow-list enforced; raw e.message to stderr (CR-03) |
-| `agent/src/rpc.ts` | publicClient + redactRpcUrl | ⚠️ ORPHANED | redactRpcUrl defined+tested but ZERO production call sites (CR-03) |
+| `agent/src/constants/grade-enum.ts` | uint8 mirror of GradeEnum.sol | ✓ VERIFIED | (unchanged) AAA=0..D=9 |
+| `agent/src/schema.ts` | zod ReasoningDocument, on-chain bounds | ✓ VERIFIED | (unchanged) grade.uint8 0..9, confidence ≤100, chain_id 5000, dimensions length 4 |
+| `agent/src/subjects/{usdy,cmeth,fbtc}.ts` | per-subject adapters, block-pinned | ✓ VERIFIED | **CR-02 fix:** `resolveBlockNumber(blockNumber)` resolves head once; `resolvedBlockNumber` threaded into `multiread()` + `ingestBlock`; no `: 0` default. 3 runtime tests prove the resolved head is stamped. |
+| `agent/src/multicall.ts` | multiread, allowFailure → missing_facts | ✓ VERIFIED | **CR-03 fix:** `publicClient.multicall` wrapped in try/catch → `redactRpcError` at the RPC boundary. |
+| `agent/src/dimensions/{4 scorers}.ts` + `synthesize.ts` | banded 0-100 scorers + 25% combine | ✓ VERIFIED | (unchanged) deterministic numbers computed AND now bound into the published doc (via CR-01 fix in claude/synthesize.ts). |
+| `agent/src/claude/synthesize.ts` | forced tool-use, engine overrides | ✓ VERIFIED | **CR-01 fix:** rebuilds `dimensions[]` from engine `BandResult`s in canonical order; rejects dropped/duplicated keys; only rationale+citations from Claude. |
+| `agent/src/claude/prompt.ts` | facts in `<facts>` tags, citation demand | ✓ VERIFIED | (unchanged) sanitizes C0 controls, wraps `<facts>`, demands `[N]` cites |
+| `agent/src/hash.ts` | canonicalize + keccak256 | ✓ VERIFIED | (unchanged) RFC 8785 JCS + keccak256(toBytes(...)) |
+| `agent/src/rate.ts` | orchestrator + validateCitations | ✓ VERIFIED | **CR-04 fix:** `getBlockTimestampSeconds(BigInt(facts.ingestBlock))` reads `getBlock({ blockNumber })`; **CR-03:** wrapped in `redactRpcError`. Full pipeline wired. |
+| `agent/src/cli.ts` | pnpm rate, 3 subjects, --mock/--block | ✓ VERIFIED | **CR-03 fix:** catch routes `e.message` through `redactRpcUrl` before stderr. Allow-list enforced. |
+| `agent/src/rpc.ts` | publicClient + redactRpcUrl | ✓ VERIFIED | **CR-02/CR-03 fix:** adds `resolveBlockNumber()` (head-resolve, redacted) + `redactRpcError()` wiring helper; redactor now called by production sites. |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 |------|----|----|--------|---------|
-| dimensions/*.ts | subjects/types.ts | SubjectFacts buckets | ✓ WIRED | imports present |
-| dimensions/synthesize.ts | grade-enum.ts | GRADE_LETTER_TO_UINT8 | ✓ WIRED | used in scoreToGrade |
-| claude/synthesize.ts | schema.ts | ReasoningDoc.safeParse | ✓ WIRED | parse + re-parse present |
+| rate.ts deterministic BandResults | doc.dimensions[].score / band_hit / missing_facts | engine rebuild in claude/synthesize.ts | ✓ WIRED (CR-01) | `synthesize.ts:218-254` keys BandResults into the published doc; Claude's dimension numbers discarded |
+| adapters | resolved concrete block | resolveBlockNumber → multiread + ingestBlock | ✓ WIRED (CR-02) | one head resolved, same value threaded to reads + stamp; no `:0` default |
+| rate.ts | getBlock({ blockNumber }) at ingestBlock | getBlockTimestampSeconds(bigint) | ✓ WIRED (CR-04) | timestamp pinned to the ingest block, not a fresh latest |
+| cli.ts / multicall.ts / rate.ts / rpc.ts | redactRpcUrl / redactRpcError | error-path redaction | ✓ WIRED (CR-03) | redactor CALLED at all 4 production sites; tripwire test guards regression |
+| claude/synthesize.ts | schema.ts | ReasoningDoc.safeParse + final parse | ✓ WIRED | parse + re-parse present |
 | hash.ts | viem.keccak256 + canonicalize | computeReasoningHash chain | ✓ WIRED | exact chain present |
-| claude/synthesize.ts | tool_choice forced submit_rating | Anthropic API | ✓ WIRED | tool_choice {type:tool,name:submit_rating} |
-| **rate.ts deterministic BandResults** | **doc.dimensions[].score / band_hit** | **engine override** | ✗ **NOT_WIRED (CR-01)** | BandResults reach the prompt only; never written into the hashed doc |
-| cli.ts / multicall.ts | redactRpcUrl | error-path redaction | ✗ **NOT_WIRED (CR-03)** | redactRpcUrl never called in production |
-| rate.ts | resolved pinned block | adapter + timestamp threading | ✗ **NOT_WIRED (CR-02/CR-04)** | default path leaks `latest`, stamps ingest_block 0 |
 
 ### Data-Flow Trace (Level 4)
 
 | Artifact | Data Variable | Source | Produces Real Data | Status |
 |----------|--------------|--------|--------------------|--------|
-| reasoning doc `dimensions[].score` | doc.dimensions | Claude tool_use input (verbatim) | LLM-variable, NOT engine BandResult | ✗ HOLLOW — wired but data is the LLM's, not the deterministic engine's (CR-01) |
-| reasoning doc `ingest_block` | facts.ingestBlock | adapter, literal 0 on default path | reads latest, records 0 | ✗ DISCONNECTED from the block actually read (CR-02) |
-| reasoning doc `generated_at` | blockTimestampSeconds | getBlock({}) = latest on default | second independent latest snapshot | ✗ DISCONNECTED from the fact-read block (CR-04) |
+| reasoning doc `dimensions[].score` | doc.dimensions | engine BandResult (rebuilt in synthesize.ts) | engine-deterministic, NOT the LLM's | ✓ FLOWING (CR-01) |
+| reasoning doc `ingest_block` | facts.ingestBlock | adapter, resolved concrete block | reads + stamps the same resolved head | ✓ FLOWING (CR-02) |
+| reasoning doc `generated_at` | blockTimestampSeconds | getBlock({ blockNumber }) at ingestBlock | timestamp of the exact ingest block | ✓ FLOWING (CR-04) |
 | reasoning doc `grade` / `confidence` | det.letter/uint8/confidence | engine synthesize() override | engine deterministic | ✓ FLOWING |
 
 ### Behavioral Spot-Checks
@@ -161,48 +100,47 @@ However, the central cross-phase contract — hash determinism + faithful proven
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
 | TypeScript strict typecheck | `npx tsc --noEmit` | exit 0 | ✓ PASS |
-| Full mock test suite | `npx vitest run` | 22 files, 185 tests passed | ✓ PASS (mock only) |
-| CR-01 dimension-score override | injected mock score:70 vs engine 42, read doc | doc.dimensions[collateral].score = **70** (Claude's), grade/confidence = engine | ✗ FAIL — confirms dimension scores are LLM-controlled |
+| Full test suite | `npx vitest run` | 22 files, 190 tests passed | ✓ PASS |
+| CR-01 engine-bound dimensions | `vitest run tests/claude.mock.test.ts -t "engine, not Claude"` (3 cases) | engine 85/62/50/41 published over Claude's 70; canonical order on shuffle; throws on dup/drop | ✓ PASS |
+| CR-02 resolved-head stamp (×3 adapters) | `vitest run tests/subjects/{usdy,cmeth,fbtc}.test.ts -t "never 0"` | `ingestBlock === 88_000_000`, multiread got the resolved block | ✓ PASS |
+| CR-03 redactor wiring tripwire | `vitest run tests/subjects/static.test.ts -t "funnels errors through the redactor"` | redactor present in all 4 production files | ✓ PASS |
+| No `: 0` default in adapters | grep `subjects/*.ts` | zero matches | ✓ PASS |
+| No `getBlock({})` (latest) in src | grep `src/**` | only in a comment; actual call is `getBlock({ blockNumber })` | ✓ PASS |
 | Live rating end-to-end | `pnpm rate USDY --block N` (real keys) | not run — no ANTHROPIC_API_KEY in env | ? SKIP — routed to human verification |
 
 ### Requirements Coverage
 
 | Requirement | Source Plan(s) | Description | Status | Evidence |
 |-------------|---------------|-------------|--------|----------|
-| REQ-01 | 02-01, 02-03, 02-04, 02-05 | Rating engine pipeline; deterministic scoring SEPARATED from LLM (CON-deterministic-vs-llm-separation); evidence-cited rationale | ⚠️ PARTIAL | Pipeline + file separation present, but the deterministic separation is NOT preserved in the hashed output (CR-01). Publish (IPFS + publishRating) is Phase 3 scope by design. |
-| REQ-05 | 02-02, 02-05 | Three Mantle RWA subjects rated (engine-side) | ✓ SATISFIED (engine-side) | USDY/cmETH/FBTC adapters at the 3 locked addresses, chain 5000; `pnpm rate` works per subject in mock. On-chain `RatingPublished` is Phase 3 scope per CONTEXT boundary. |
+| REQ-01 | 02-01, 02-03, 02-04, 02-05 | Rating engine pipeline; deterministic scoring SEPARATED from LLM (CON-deterministic-vs-llm-separation); evidence-cited rationale | ✓ SATISFIED (engine-side) | Pipeline + file separation present AND the deterministic separation is now preserved in the hashed output (CR-01 closed). Citation enforcement present; rigor eyeball is a human item. Publish (IPFS + publishRating) is Phase 3 scope by design. |
+| REQ-05 | 02-02, 02-05 | Three Mantle RWA subjects rated (engine-side) | ✓ SATISFIED (engine-side) | USDY/cmETH/FBTC adapters at the 3 locked addresses, chain 5000; `pnpm rate` works per subject. On-chain `RatingPublished` is Phase 3 scope per CONTEXT boundary. |
 
-No orphaned requirements: every ID declared in plan frontmatter (REQ-01, REQ-05) maps to REQUIREMENTS.md and to the phase requirement IDs. REQUIREMENTS.md maps exactly REQ-01 and REQ-05 to Phase 2.
+No orphaned requirements: REQUIREMENTS.md maps exactly REQ-01 and REQ-05 to Phase 2; both are declared in plan frontmatter.
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| claude/synthesize.ts | 185-192 | `...parsed` spread copies Claude's dimensions[] into the hashed doc | 🛑 Blocker | CR-01 — LLM numbers in deterministic output; non-deterministic hash |
-| subjects/usdy.ts, cmeth.ts, fbtc.ts | 64 / 59 / 62 | `ingestBlock = ... : 0` while reading latest | 🛑 Blocker | CR-02 — provenance corruption, `latest` leak, broken replay |
-| cli.ts | 97-98 | raw `e.message` to stderr; redactRpcUrl unused | 🛑 Blocker | CR-03 — keyed RPC URL leak on live error path |
-| rate.ts | 138-140 | `getBlock({})` reads latest independent of read block | 🛑 Blocker | CR-04 — second non-determinism source for generated_at |
-| tests/subjects/no-latest-leak.test.ts | whole file | source-text grep, not runtime exercise | ⚠️ Warning | misleading green — never hits the ingest_block:0 path |
-| 02-05-SUMMARY.md | line 26 | "Same code path as live mode; only the leaves are swapped" | ⚠️ Warning | overstates mock coverage; live determinism never proven |
+| (none) | — | No TODO/FIXME/PLACEHOLDER markers in `agent/src`; no `: 0` default in adapters; no `getBlock({})` call | — | All 4 prior blockers' anti-patterns are removed |
+
+The 4 prior 🛑 Blocker anti-patterns (synthesize `...parsed` dimension pass-through, adapter `: 0`, raw `e.message` to stderr, `getBlock({})` latest) are all gone. The prior ⚠️ "no-latest-leak is source-grep only" warning is now superseded: 3 genuine **runtime** adapter tests exercise the default-block path and assert the resolved head is stamped (never 0) — the grep tripwire remains as a complementary guard.
 
 ### Human Verification Required
 
-1. **Live citation-rigor eyeball** — run `pnpm rate USDY/cmETH/FBTC --block <recent>` with real `ANTHROPIC_API_KEY` + `MANTLE_RPC_URL`; confirm every dimension rationale names a specific data point (no generic statements) and that grades show a distinguishable mix. (Auto-skipped during execution per 02-05 Task 2-05-03.)
-2. **Live determinism re-check (after fixes)** — run the same `--block N` twice live and diff `reasoningHash`; expect byte-identical. The mock harness cannot prove this (hard-codes dimension score 70).
+1. **Live citation-rigor eyeball (SC-3)** — run `pnpm rate USDY/cmETH/FBTC --block <recent>` with real `ANTHROPIC_API_KEY` + `MANTLE_RPC_URL`; confirm every dimension rationale names a specific data point (no generic statements) and grades show a distinguishable mix. (Auto-skipped during execution per 02-05 Task 2-05-03.)
+2. **Live two-run determinism (SC-4 / T-2-06)** — run the same `--block N` twice live and diff `reasoningHash`; expect byte-identical. The code that guarantees this (engine-bound dimensions + pinned block + pinned timestamp) is now verified and mock-proven; live-model confirmation needs a real API key.
 
 ### Gaps Summary
 
-The phase produced a complete, well-structured engine that is correct under the mock, but it does NOT yet honor the determinism + provenance contract on the live path that Phases 3 and 4 will consume. Three blocking gaps, grouped by root cause:
+No blocking gaps remain. All four CRITICAL determinism/security blockers from 02-REVIEW.md are independently confirmed closed against the live source and the live test suite (re-run this pass: 190/190 green, tsc exit 0):
 
-1. **LLM-controlled deterministic fields (CR-01)** — the engine's banded `score`/`band_hit` are computed and shown to Claude, but Claude's echoed numbers (not the engine's) are what get hashed and published. Two live runs over identical chain state can produce different hashes. This is the most serious finding: it breaks CON-deterministic-vs-llm-separation (REQ-01) and plan 02-04 must_have truth #5 directly, and it silently corrupts the bytes32 that Phase 3 writes on-chain and Phase 4 verifies. **Independently reproduced** with a divergent-score mock (engine 42 → doc 70).
+1. **CR-01 (was SC-2 fail)** — `claude/synthesize.ts` now rebuilds `dimensions[]` from the engine's deterministic `BandResult`s in canonical key order, discarding Claude's per-dimension numbers and rejecting dropped/duplicated keys. Inverse-of-mock test `[2-04-02e]` proves the doc carries engine scores (85/62/50/41), not Claude's hard-coded 70. CON-deterministic-vs-llm-separation now holds in the hashed artifact.
+2. **CR-02 + CR-04 (were SC-4 fail)** — `resolveBlockNumber()` resolves the head once; the same concrete block is threaded into reads, `ingest_block`, citations, prices, AND `generated_at` (via `getBlock({ blockNumber })`). No `ingest_block:0`-while-reading-latest path remains; no second `latest` snapshot for the timestamp. 3 runtime adapter tests assert the resolved head is stamped (never 0).
+3. **CR-03 (security)** — `redactRpcError`/`redactRpcUrl` are now CALLED at all four production boundaries (multicall.ts, rate.ts, rpc.ts, cli.ts), guarded by a wiring tripwire test so the leak cannot silently regress to zero call sites.
 
-2. **`latest` leak + ingest_block:0 (CR-02, CR-04)** — the default (no `--block`) live path reads chain head but records block 0 everywhere (ingest_block, citations, prices, and a separate latest read for the timestamp). This poisons provenance and makes Phase 4 replay impossible for any document rated without an explicit block. The fix (resolve one concrete block in `rate()` and thread it to adapter + timestamp) closes both CR-02 and CR-04.
-
-3. **Un-redacted RPC URL on the live error path (CR-03)** — `redactRpcUrl` exists and is tested but is wired into zero production sites; a live RPC failure prints the keyed `MANTLE_RPC_URL` to stderr. T-2-03 is documented-but-not-enforced.
-
-None of these were flagged as intentional deviations in any SUMMARY — they are undiscovered defects masked by mock-only test coverage — so no override is warranted. None are addressed by a later phase; Phase 3/4 consume this contract and would inherit the corruption. Recommend a focused gap-closure plan: a single change in `rate.ts`/`synthesize.ts` resolves CR-01/CR-02/CR-04 (resolve block + override dimensions from BandResults), plus a small redaction wiring change for CR-03, plus live-path tests that exercise divergent dimension scores and the default-block path.
+The only items outstanding are inherently human/live-API: the SC-3 citation-rigor eyeball and the SC-4 live two-run hash diff, both requiring a live `ANTHROPIC_API_KEY`. Because the human-verification section is non-empty, the status is `human_needed` (automated checks pass, live testing pending) rather than `passed`. Nothing here blocks proceeding to plan Phase 3 in parallel — the engine contract Phase 3/4 consume is now correct and deterministic by construction.
 
 ---
 
-_Verified: 2026-06-10T11:45:00Z_
+_Verified: 2026-06-10T12:25:00Z_
 _Verifier: Claude (gsd-verifier)_
