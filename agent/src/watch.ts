@@ -21,7 +21,6 @@ import type { SubjectId } from "./subjects/types.js";
 
 const REGISTRY = process.env.RATING_REGISTRY_ADDRESS as `0x${string}`;
 const POLL_MS = 4_000;
-const RECONNECT_MS = 2_000;
 const HEARTBEAT_MS = 15_000;
 
 export type WatchDeps = {
@@ -80,28 +79,57 @@ export function handleLogs(
 }
 
 /**
- * Open the RatingRequested subscription; on error, unwatch and reconnect with
- * backoff (Pitfall 3 — a silently dropped subscription would freeze the demo).
- * Returns an unwatch handle.
+ * Subscribe to RatingRequested by POLLING eth_getLogs over a moving block range
+ * (publicClient.getContractEvents), NOT eth_newFilter/eth_getFilterChanges.
+ *
+ * Mantle's load-balanced public RPC does not retain server-side filters across
+ * nodes (eth_getFilterChanges -> "filter not found"), which makes viem's
+ * filter-based watchContractEvent churn dead filters and silently miss events.
+ * Stateless getLogs polling is the reliable subscription (what indexers use).
+ *
+ * Resilience (Pitfall 3): a transient RPC error is reported via onError and
+ * polling CONTINUES from the same lastBlock — a hiccup never freezes the daemon
+ * or skips a block range. Returns a stop handle.
  */
 function startWatch(deps: WatchDeps): () => void {
-  let unwatch: () => void = () => {};
-  const begin = () => {
-    unwatch = publicClient.watchContractEvent({
-      address: REGISTRY,
-      abi: ratingRegistryAbi,
-      eventName: "RatingRequested",
-      pollingInterval: POLL_MS,
-      onLogs: (logs) => handleLogs(logs as readonly RatingRequestedLog[], deps),
-      onError: (err) => {
-        (deps.error ?? ((m) => console.error(m)))(redactRpcError(err).message);
-        unwatch();
-        setTimeout(begin, RECONNECT_MS); // reconnect with backoff
-      },
-    });
+  const onError = (e: unknown) =>
+    (deps.error ?? ((m) => console.error(m)))(redactRpcError(e).message);
+
+  let stopped = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let lastBlock: bigint | undefined; // highest block already scanned
+
+  const tick = async () => {
+    if (stopped) return;
+    try {
+      const head = await publicClient.getBlockNumber();
+      const fromBlock = lastBlock === undefined ? head : lastBlock + 1n;
+      if (fromBlock <= head) {
+        const logs = await publicClient.getContractEvents({
+          address: REGISTRY,
+          abi: ratingRegistryAbi,
+          eventName: "RatingRequested",
+          fromBlock,
+          toBlock: head,
+        });
+        lastBlock = head; // advance only after a successful scan (no gaps/overlap)
+        if (logs.length > 0)
+          handleLogs(logs as readonly RatingRequestedLog[], deps);
+      } else {
+        lastBlock = head;
+      }
+    } catch (e) {
+      onError(e); // keep polling — a transient RPC hiccup must not kill the daemon
+    } finally {
+      if (!stopped) timer = setTimeout(tick, POLL_MS);
+    }
   };
-  begin();
-  return () => unwatch();
+
+  void tick();
+  return () => {
+    stopped = true;
+    if (timer) clearTimeout(timer);
+  };
 }
 
 async function main() {
