@@ -8,8 +8,8 @@ progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 14
-  completed_plans: 12
-  percent: 86
+  completed_plans: 13
+  percent: 93
 ---
 
 # STATE.md — Touchstone
@@ -27,7 +27,9 @@ progress:
 ## Current Position
 
 Phase: 03 (onchain-publish-erc8004) — EXECUTING
-Plan: 4 of 6 complete (03-01, 03-02, 03-05, 03-03 done; 03-04 + 03-06 remain)
+Plan: 5 of 6 complete (03-01, 03-02, 03-05, 03-03, 03-04 done; 03-06 remains)
+
+**2026-06-11 — Plan 03-04 COMPLETE.** `publishRatingFor(subject)` — the ONE shared publish pipeline (D-03): rate→canonicalizeDoc→pin(bare CID)→`publishRating(...cid)` in one atomic tx→parse RatingPublished→assert hash+cid match ("diverged" guard, D-02). Manual `pnpm publish-rating <subject>` CLI calls the identical fn. Mock proof 3/3 + **anvil-fork e2e EXECUTED 1/1** (publish→`latestRating` read-back→re-hash on real forked Mantle state — ROADMAP SC-3, no live Mainnet tx). Default suite 204 pass/1 skip, typecheck 0. Live-fork runner: `pnpm test:fork` against `anvil --fork-url https://rpc.mantle.xyz --chain-id 5000`. **Next: Plan 03-06** (RatingRequested watcher daemon + ONE live Mainnet publish).
 
 **2026-06-11 — Plan 03-03 COMPLETE (LIVE Mainnet).** ERC-8004 Identity NFT **agentId 114** held by the agent EOA (`ownerOf(114)==0xb27c7fa1…F51e`, verified). Canonical `RatingRegistry` deployed ONCE (D-01) to Mantle Mainnet at **`0xF16d03965E1870Fc3235198468C56dEC65E5606D`** (tx `0xd99ced…34af3`, block 96506775), **verified on Mantlescan**. Live gate PROVEN: `publishRating` reverts `NotAgent()` (`0x0d9ab13f`) from a non-agent, passes from the agent EOA. Agent-card CID `bafkreifu6wo7sseskorodory3lgsjhgpktimadantvbfkhvy7p4o5rh44u`. ABI reconciled byte-equivalent (12/12) + frozen (D-02). Tests: agent 201 pass/1 skip + typecheck clean; forge 8/8. **Next: Plan 03-04** (`publishRatingFor` rate→pin→publishRating pipeline) — iterate against an `anvil --fork`, NO further live redeploy.
 
