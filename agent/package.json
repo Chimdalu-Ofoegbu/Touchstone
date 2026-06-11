@@ -18,6 +18,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:live": "RUN_LIVE=1 vitest run --reporter=verbose",
+    "test:fork": "RUN_LIVE=1 vitest run --config vitest.live.config.ts",
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit"
   },
