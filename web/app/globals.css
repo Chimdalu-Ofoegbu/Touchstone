@@ -43,7 +43,7 @@
   --ts-accent: 73 20 246; /* #4914F6 deep violet reads strong on paper */
   --ts-accent-hi: 101 59 245; /* #653BF5 */
   --ts-accent-lo: 73 20 246;
-  --ts-prime: 28 140 100;
+  --ts-prime: 21 122 85; /* darkened green — AA for small text on paper (4.7:1) */
   --ts-watch: 138 100 16; /* darkened amber — AA for the small family label (4.7:1) */
   --ts-caution: 176 86 36;
   --ts-distress: 184 52 44;
