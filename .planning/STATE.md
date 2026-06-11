@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Executing Phase 03
-last_updated: "2026-06-10T19:48:52.366Z"
+status: Phase 03 complete — ready for Phase 04
+last_updated: "2026-06-11T14:10:00.000Z"
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 14
-  completed_plans: 13
-  percent: 93
+  completed_plans: 14
+  percent: 100
 ---
 
 # STATE.md — Touchstone
@@ -26,8 +26,10 @@ progress:
 
 ## Current Position
 
-Phase: 03 (onchain-publish-erc8004) — EXECUTING
-Plan: 5 of 6 complete (03-01, 03-02, 03-05, 03-03, 03-04 done; 03-06 remains)
+Phase: 03 (onchain-publish-erc8004) — **COMPLETE 2026-06-11 (6/6 plans)**
+Next: Phase 04 — Frontend (3 screens) + historical-proof finish.
+
+**2026-06-11 — Plan 03-06 COMPLETE + Phase 03 CLOSED.** RatingRequested watcher daemon (eth_getLogs polling — filters dropped by Mantle's load-balanced RPC; map→dedupe→reconnect→heartbeat; 3/3 unit). LIVE Mainnet e2e PROVEN end-to-end on `0xF16d…606D`: requestRating (`0xc0d6…a6c4`) → watcher CAUGHT → publishRating (`0x4d12…f0d4`) → `latestRating(USDY)` full struct (BBB/80) → IPFS JSON re-hashes EXACTLY to on-chain reasoningHash `0xf9963a10…` (PASS). A manual `pnpm publish-rating USDY` run also published+verified (tx `0xf132…49fe`, hash `0x5ded…1d14`). Three live-bring-up bugs found+fixed: RPC filter incompat (86d3d26), STATIC non-canonical EIP-55 normalized at write boundary (dd2d7a9), Windows cast/.env key-quoting (sidestepped via tsx --env-file). Known follow-up (non-blocking, task spawned): correct STATIC USDY/cmETH checksums + regen golden hashes. Phase-3 SC-1..SC-4 all satisfied.
 
 **2026-06-11 — Plan 03-04 COMPLETE.** `publishRatingFor(subject)` — the ONE shared publish pipeline (D-03): rate→canonicalizeDoc→pin(bare CID)→`publishRating(...cid)` in one atomic tx→parse RatingPublished→assert hash+cid match ("diverged" guard, D-02). Manual `pnpm publish-rating <subject>` CLI calls the identical fn. Mock proof 3/3 + **anvil-fork e2e EXECUTED 1/1** (publish→`latestRating` read-back→re-hash on real forked Mantle state — ROADMAP SC-3, no live Mainnet tx). Default suite 204 pass/1 skip, typecheck 0. Live-fork runner: `pnpm test:fork` against `anvil --fork-url https://rpc.mantle.xyz --chain-id 5000`. **Next: Plan 03-06** (RatingRequested watcher daemon + ONE live Mainnet publish).
 
