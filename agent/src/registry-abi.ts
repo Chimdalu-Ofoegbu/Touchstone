@@ -9,13 +9,14 @@
 //   once-only Mantle Mainnet redeploy; Phase 4 frontend types derive from this SAME
 //   frozen ABI. Do NOT edit it ad hoc post-redeploy — re-export from the artifact.
 //
-// WAVE-1 PARALLEL NOTE (Plan 01 un-merged): this fragment is hand-authored from the
-// Plan 01 contract shape — `string cid` added to the Rating struct + the
-// RatingPublished event, and `string calldata cid` appended to publishRating — while
-// Plan 01's contract change is being made in PARALLEL in the same wave. Until Plan 01
-// lands, a transient typecheck mismatch against an un-merged contract is EXPECTED;
-// it is reconciled byte-for-byte in Plan 03 against the deployed artifact. This file
-// type-checks standalone (it is plain data), so Plans 04/06 can consume it now.
+// RECONCILED 2026-06-11 (Plan 03-03 Task 3): verified byte-equivalent — 12/12 entries,
+// canonical-signature match — against the post-redeploy artifact
+// out/RatingRegistry.sol/RatingRegistry.json from the once-only Mantle Mainnet deploy
+// at 0xF16d03965E1870Fc3235198468C56dEC65E5606D (agentTokenId 114 baked in as an
+// immutable). The Rating struct, the RatingPublished event, and publishRating all carry
+// `string cid` (D-02), matching the deployed bytecode. This ABI is now FROZEN; Phase 4
+// frontend types derive from it. Do NOT edit ad hoc — D-01 is a one-time deploy, so the
+// contract shape will not change; if it ever did, re-reconcile from the artifact.
 //
 // Gate (D-01): the deployed contract enforces ownerOf(agentTokenId) == msg.sender via
 // the canonical ERC-8004 Identity Registry; the NotAgent error below is what a

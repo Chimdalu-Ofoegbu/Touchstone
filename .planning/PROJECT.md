@@ -94,7 +94,22 @@ Iterate on **Mantle Sepolia (chain 5003)** through Days 1-4. Deploy ship artifac
 
 ## Deployed Addresses
 
-**Current canonical Sepolia deploy** (Phase 1 skeleton + WR-01/WR-02/WR-03/WR-04 hardening from 01-REVIEW.md):
+### Phase 3 — Mantle Mainnet (CANONICAL ship contract, 2026-06-11)
+
+The once-only (D-01) Mainnet redeploy with the live ERC-8004 identity gate baked in as immutables. This is the canonical contract for Phase 4 (frontend) and Phase 5 (ship).
+
+| Contract | Network | Address | Deploy Tx | Verified |
+|----------|---------|---------|-----------|----------|
+| RatingRegistry (Phase 3 — ERC-8004 gated) | Mantle Mainnet (5000) | `0xF16d03965E1870Fc3235198468C56dEC65E5606D` | [`0xd99c...34af3`](https://mantlescan.xyz/tx/0xd99ced666c2e6fc39b45de6f50f66b7a6befc2088b2632a21fc9bf1ceb134af3) | [verified on Mantlescan](https://mantlescan.xyz/address/0xf16d03965e1870fc3235198468c56dec65e5606d) |
+
+- **Deploy block:** 96506775 · **gas used:** 705,910 · **deployer / agent EOA:** `0xb27c7fa15D25E880Ba4a9a508e166538e106F51e`.
+- **Immutables baked in:** `registry = 0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` (canonical ERC-8004 Identity Registry, Mantle-Mainnet-only) · `agentTokenId = 114`.
+- **Agent identity (ERC-8004, REQ-03):** the agent EOA holds Identity NFT **agentId 114**, minted via `register(agentURI)` on the canonical registry. Verified on-chain: `ownerOf(114) == 0xb27c7fa1…F51e`.
+- **Agent-card CID:** `bafkreifu6wo7sseskorodory3lgsjhgpktimadantvbfkhvy7p4o5rh44u` (`tokenURI(114) = ipfs://bafkreifu6w…h44u`; Pinata raw-file pin).
+- **Gate is LIVE:** `publishRating` is gated by `registry.ownerOf(agentTokenId) == msg.sender`. Proven against the live contract 2026-06-11 — a non-agent call reverts `NotAgent()` (selector `0x0d9ab13f`); a call from the agent EOA (owner of 114) passes the gate. `agentTokenId()` returns `114`.
+- **ABI frozen (D-02):** `agent/src/registry-abi.ts` reconciled byte-equivalent (12/12 entries, canonical-signature match) to the post-redeploy artifact `out/RatingRegistry.sol/RatingRegistry.json`; Phase 4 FE types derive from it.
+
+**Phase 1 iteration record — Mantle Sepolia** (skeleton + WR-01/WR-02/WR-03/WR-04 hardening from 01-REVIEW.md; superseded as the ship target by the Mainnet deploy above, retained for provenance):
 
 | Contract | Network | Address | Deploy Tx | Verified |
 |----------|---------|---------|-----------|----------|
@@ -108,7 +123,7 @@ Agent address (initial, Phase 1): `0xb27c7fa15D25E880Ba4a9a508e166538e106F51e` �
 |----------|---------|---------|-----------|--------|
 | RatingRegistry (Phase 1.0 — superseded) | Mantle Sepolia (5003) | `0x0912bcBd57579179388cE9d4863032406dCfBe18` | [`0x4cba...16c2b`](https://sepolia.mantlescan.xyz/tx/0x4cba0abfe6aee6c69f4d59d1921ce8fdb3dffa154a0505746049ab71f0f16c2b) | superseded 2026-06-08 — bytecode lacks confidence bound + agent is mutable storage. Still on-chain and verified; do not point new code at this address. |
 
-Mainnet deploy: scheduled for Day 5 / Phase 5 per DEC-deployment-target-plan. The Sepolia artifact above clears the 20 Project Deployment Award technical bar today (2026-06-08).
+Mainnet deploy: **DONE 2026-06-11** (Phase 3, Plan 03-03) — see the *Phase 3 — Mantle Mainnet* section at the top of Deployed Addresses. Per DEC-deployment-target-plan, Sepolia was the Day-1→Day-4 iteration target; the Mainnet contract `0xF16d…606D` is the canonical ship artifact. The Sepolia artifact cleared the 20 Project Deployment Award technical bar on 2026-06-08.
 
 See `.planning/phases/01-lock-skeleton/01-03-DEPLOYMENT.md` for the full deployment record of both deploys (block numbers, gas used, smoke-tx hashes, verification log).
 

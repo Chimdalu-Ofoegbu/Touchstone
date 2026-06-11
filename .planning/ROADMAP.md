@@ -56,7 +56,7 @@
 **Plans:** 6 plans
 - [x] 03-01-PLAN.md — IIdentityRegistry ownerOf gate (negative test FIRST) + string cid in struct/event/signature + Deploy.s.sol (REQ-02, REQ-03)
 - [x] 03-02-PLAN.md — agent write infra: walletClient + byte-exact pin(canonical) + registry-abi (REQ-04)
-- [ ] 03-03-PLAN.md — LIVE: mint ERC-8004 identity (register) + once-only Mainnet redeploy + ABI freeze (REQ-02, REQ-03)
+- [x] 03-03-PLAN.md — LIVE: mint ERC-8004 identity (register) + once-only Mainnet redeploy + ABI freeze (REQ-02, REQ-03) — **DONE 2026-06-11**: agentId 114 held by agent; `RatingRegistry` Mainnet `0xF16d…606D` verified; gate proven live
 - [ ] 03-04-PLAN.md — shared publishRatingFor pipeline (rate→pin→publishRating) + manual publish-rating CLI (REQ-02, REQ-04)
 - [x] 03-05-PLAN.md — Elixir deUSD historical fixture rated by the UNMODIFIED engine + captured artifact (REQ-06 start)
 - [ ] 03-06-PLAN.md — RatingRequested watcher daemon (dedupe/reconnect/heartbeat) + LIVE Mainnet end-to-end (REQ-02)
@@ -93,7 +93,7 @@
 |-------|----------------|--------|-----------|
 | 1. Lock + Skeleton | 3/3 | Complete | 2026-06-08 |
 | 2. Rating Engine Core | 5/5 | Complete | 2026-06-10 |
-| 3. On-Chain Publish + ERC-8004 + Historical Start | 0/6 | Planned | - |
+| 3. On-Chain Publish + ERC-8004 + Historical Start | 4/6 | Executing | - |
 | 4. Frontend (3 Screens) + Historical Finish | 0/0 | Not started | - |
 | 5. Ship | 0/0 | Not started | - |
 

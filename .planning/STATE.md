@@ -8,8 +8,8 @@ progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 14
-  completed_plans: 8
-  percent: 57
+  completed_plans: 12
+  percent: 86
 ---
 
 # STATE.md — Touchstone
@@ -27,7 +27,12 @@ progress:
 ## Current Position
 
 Phase: 03 (onchain-publish-erc8004) — EXECUTING
-Plan: 1 of 6
+Plan: 4 of 6 complete (03-01, 03-02, 03-05, 03-03 done; 03-04 + 03-06 remain)
+
+**2026-06-11 — Plan 03-03 COMPLETE (LIVE Mainnet).** ERC-8004 Identity NFT **agentId 114** held by the agent EOA (`ownerOf(114)==0xb27c7fa1…F51e`, verified). Canonical `RatingRegistry` deployed ONCE (D-01) to Mantle Mainnet at **`0xF16d03965E1870Fc3235198468C56dEC65E5606D`** (tx `0xd99ced…34af3`, block 96506775), **verified on Mantlescan**. Live gate PROVEN: `publishRating` reverts `NotAgent()` (`0x0d9ab13f`) from a non-agent, passes from the agent EOA. Agent-card CID `bafkreifu6wo7sseskorodory3lgsjhgpktimadantvbfkhvy7p4o5rh44u`. ABI reconciled byte-equivalent (12/12) + frozen (D-02). Tests: agent 201 pass/1 skip + typecheck clean; forge 8/8. **Next: Plan 03-04** (`publishRatingFor` rate→pin→publishRating pipeline) — iterate against an `anvil --fork`, NO further live redeploy.
+
+---
+_Phase-02 closing history (retained for provenance):_
 Code review (02-REVIEW.md) found 4 blockers on the cross-phase hash/provenance contract; verifier independently REPRODUCED all 4; ALL 4 FIXED inline this session (each an atomic root-cause-named commit) and re-verified CLOSED against live code:
 
   - CR-01 (SC-2) FIXED commit df2e254: synthesize.ts now rebuilds dimensions[] from engine BandResults (score/band_hit/missing_facts) in canonical key order; only rationale+citations are Claude's. Proven by [2-04-02e] divergent-score test.
