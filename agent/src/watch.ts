@@ -62,10 +62,19 @@ export function handleLogs(
       continue;
     }
     inFlight.add(id);
-    log("[publish] " + id + " (" + address + ") — running pipeline");
+    // Demo-clear "agent reacting" beat (REQ-10) — reads on camera.
+    log("\n>>> RatingRequested CAUGHT -> " + id + " (" + address + ") — running the rating pipeline now...\n");
     publishRatingFor(id)
-      .then((r) => log("[published] " + id + " " + JSON.stringify(r)))
-      .catch((e) => error(redactRpcError(e).message))
+      .then((r) => {
+        const res = r as { txHash?: string; cid?: string; reasoningHash?: string };
+        log(
+          "\n>>> PUBLISHED " + id +
+            "\n      tx:            " + res.txHash +
+            "\n      cid:           " + res.cid +
+            "\n      reasoningHash: " + res.reasoningHash + "\n",
+        );
+      })
+      .catch((e) => error("\n>>> FAILED " + id + " -> " + redactRpcError(e).message + "\n"))
       .finally(() => inFlight.delete(id));
   }
 }
@@ -105,9 +114,9 @@ async function main() {
     inFlight: new Set<SubjectId>(),
   };
   startWatch(deps);
-  console.log(
-    "[watch] listening for RatingRequested on " + REGISTRY + " (Mantle Mainnet, chain 5000)",
-  );
+  console.log("\n=== Touchstone agent watcher LIVE ===");
+  console.log("Listening for RatingRequested on " + REGISTRY + " (Mantle Mainnet, chain 5000)");
+  console.log("Trigger with: requestRating(<subject address>)  |  subjects: USDY, cmETH, FBTC\n");
   setInterval(() => {
     console.log(
       "[heartbeat] watching " + REGISTRY + " @ " + new Date().toISOString(),
