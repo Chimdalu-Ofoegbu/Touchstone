@@ -42,11 +42,8 @@ export function ThemeToggle() {
             aria-pressed={active}
             onClick={() => apply(t)}
             className={[
-              "px-2.5 py-1 font-mono text-2xs uppercase tracking-label transition-colors",
-              "focus:outline-none focus-visible:ring-1 focus-visible:ring-accent",
-              active
-                ? "bg-accent text-bg"
-                : "text-muted hover:text-ink",
+              "inline-flex min-h-6 items-center px-2.5 py-1 font-mono text-2xs uppercase tracking-label transition-colors",
+              active ? "bg-accent-lo text-white" : "text-muted hover:text-ink",
             ].join(" ")}
           >
             {t === "dark" ? "Terminal" : "Paper"}

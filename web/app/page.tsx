@@ -1,15 +1,7 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Board, type BoardEntry } from "@/components/board";
-import {
-  getBoard,
-  getRatingHistory,
-  AGENT_TOKEN_ID,
-  AGENT_ADDRESS,
-  EXPLORER,
-  RATING_REGISTRY,
-  shortHash,
-} from "@/lib/touchstone";
+import { getBoard, getRatingHistory, EXPLORER, RATING_REGISTRY } from "@/lib/touchstone";
 
 // Live on-chain data: read fresh every request so a newly published rating shows.
 export const dynamic = "force-dynamic";
@@ -45,7 +37,7 @@ export default async function Home() {
   }
 
   return (
-    <main className="min-h-screen grid-bg">
+    <main id="main-content" className="min-h-screen grid-bg">
       <div className="mx-auto max-w-terminal px-6 md:px-10">
         {/* masthead */}
         <header className="flex items-center justify-between border-b rule-strong py-5">
@@ -56,14 +48,17 @@ export default async function Home() {
             <span className="label hidden sm:inline">Credit ratings · Mantle RWA</span>
           </div>
           <nav className="flex items-center gap-5">
-            <Link href="/track-record" className="label hover:text-ink transition-colors">
+            <Link
+              href="/track-record"
+              className="label inline-flex items-center min-h-6 hover:text-ink transition-colors"
+            >
               Track record
             </Link>
             <a
               href={`${EXPLORER}/address/${RATING_REGISTRY}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="label hidden md:inline hover:text-ink transition-colors"
+              className="label hidden md:inline-flex items-center min-h-6 hover:text-ink transition-colors"
             >
               Contract ↗
             </a>
@@ -93,29 +88,6 @@ export default async function Home() {
           </section>
         )}
 
-        {/* footer */}
-        <footer className="border-t rule py-6 flex flex-col gap-2 md:flex-row md:justify-between">
-          <span className="label">Touchstone · the Moody&apos;s of the agentic economy</span>
-          <div className="flex flex-wrap gap-x-5 gap-y-1">
-            <a
-              href={`${EXPLORER}/token/${"0x8004A169FB4a3325136EB29fA0ceB6D2e539a432"}?a=${AGENT_TOKEN_ID}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="label hover:text-ink transition-colors"
-            >
-              ERC-8004 identity #{AGENT_TOKEN_ID.toString()}
-            </a>
-            <a
-              href={`${EXPLORER}/address/${AGENT_ADDRESS}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="label hover:text-ink transition-colors"
-            >
-              Agent {shortHash(AGENT_ADDRESS)}
-            </a>
-            <span className="label">Mantle Mainnet · chain 5000</span>
-          </div>
-        </footer>
       </div>
     </main>
   );

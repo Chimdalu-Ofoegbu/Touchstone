@@ -4,8 +4,22 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { GradeChip } from "./grade-chip";
 import { Sparkline } from "./sparkline";
+import { Tooltip } from "./tooltip";
 import { familyOf, type GradeFamily, FAMILY_LABEL, CONFIDENCE_LABEL } from "@/lib/grades";
 import { relativeTime, shortHash } from "@/lib/touchstone";
+
+function FilterIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M3 4h10l-3.8 4.6v3.2l-2.4 1.2V8.6L3 4Z"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 export type BoardEntry = {
   id: string;
@@ -60,16 +74,24 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
       {/* controls */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <span className="label mr-1">Filter</span>
+          <Tooltip label="Filter" side="top">
+            <button
+              type="button"
+              aria-label="Filter"
+              tabIndex={0}
+              className="mr-1 inline-flex min-h-6 min-w-6 items-center justify-center p-1 text-muted transition-colors hover:text-ink"
+            >
+              <FilterIcon />
+            </button>
+          </Tooltip>
           {FILTERS.map((f) => (
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
               aria-pressed={filter === f.key}
               className={[
-                "border px-2.5 py-1 font-mono text-2xs uppercase tracking-label transition-colors",
-                "focus:outline-none focus-visible:ring-1 focus-visible:ring-accent",
-                filter === f.key ? "bg-accent text-bg border-accent" : "text-muted hover:text-ink",
+                "inline-flex min-h-6 items-center border px-2.5 py-1 font-mono text-2xs uppercase tracking-label transition-colors",
+                filter === f.key ? "bg-accent-lo text-white border-accent-lo" : "text-muted hover:text-ink",
               ].join(" ")}
             >
               {f.label}
@@ -84,9 +106,8 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
               onClick={() => setSort(s.key)}
               aria-pressed={sort === s.key}
               className={[
-                "border px-2.5 py-1 font-mono text-2xs uppercase tracking-label transition-colors",
-                "focus:outline-none focus-visible:ring-1 focus-visible:ring-accent",
-                sort === s.key ? "bg-accent text-bg border-accent" : "text-muted hover:text-ink",
+                "inline-flex min-h-6 items-center border px-2.5 py-1 font-mono text-2xs uppercase tracking-label transition-colors",
+                sort === s.key ? "bg-accent-lo text-white border-accent-lo" : "text-muted hover:text-ink",
               ].join(" ")}
             >
               {s.label}
