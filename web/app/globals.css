@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Touchstone theme tokens. Colors are `R G B` triplets so Tailwind can do
+  rgb(var(--token) / <alpha>). Dark is the native terminal default (mirrors the
+  reference); light is the editorial-paper counterpart in the same language.
+*/
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --ts-bg: 15 15 15; /* #0F0F0F near-black */
+  --ts-surface: 22 22 22; /* #161616 panel */
+  --ts-surface-2: 28 28 28; /* #1C1C1C raised */
+  --ts-ink: 245 245 245; /* near-white text */
+  --ts-muted: 161 161 161; /* #A1A1A1 secondary */
+  --ts-faint: 99 99 99; /* #636363 tertiary */
+  --ts-line: 255 255 255; /* hairline rules, used at low alpha */
+  --ts-line-alpha: 0.1;
+  --ts-accent: 122 90 249; /* #7A5AF9 mid violet — primary on dark */
+  --ts-accent-hi: 178 155 246; /* #B29BF6 light violet */
+  --ts-accent-lo: 73 20 246; /* #4914F6 deep violet */
+  /* grade families (tuned for the dark base) */
+  --ts-prime: 74 201 155; /* teal-green */
+  --ts-watch: 214 169 71; /* amber */
+  --ts-caution: 224 130 70; /* orange */
+  --ts-distress: 226 92 78; /* red */
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --ts-bg: 245 243 238; /* #F5F3EE warm paper */
+  --ts-surface: 252 251 248; /* #FCFBF8 */
+  --ts-surface-2: 255 255 255;
+  --ts-ink: 23 22 18; /* #171612 deep ink */
+  --ts-muted: 92 88 80; /* warm grey */
+  --ts-faint: 140 134 122;
+  --ts-line: 23 22 18;
+  --ts-line-alpha: 0.12;
+  --ts-accent: 73 20 246; /* #4914F6 deep violet reads strong on paper */
+  --ts-accent-hi: 101 59 245; /* #653BF5 */
+  --ts-accent-lo: 73 20 246;
+  --ts-prime: 28 140 100;
+  --ts-watch: 168 120 24;
+  --ts-caution: 176 86 36;
+  --ts-distress: 184 52 44;
+}
+
+@layer base {
+  * {
+    border-color: rgb(var(--ts-line) / var(--ts-line-alpha));
+  }
+  html {
+    background: rgb(var(--ts-bg));
+  }
+  body {
+    background: rgb(var(--ts-bg));
+    color: rgb(var(--ts-ink));
+    font-feature-settings: "tnum" 1, "cv01" 1; /* tabular numerals for data */
+    -webkit-font-smoothing: antialiased;
+  }
+  /* tabular, slashed-zero numerals everywhere data appears */
+  .tnum {
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+}
+
+@layer utilities {
+  /* hairline rules in the current theme's line color */
+  .rule {
+    border-color: rgb(var(--ts-line) / var(--ts-line-alpha));
+  }
+  .rule-strong {
+    border-color: rgb(var(--ts-line) / 0.22);
+  }
+  /* uppercase micro-label (eyebrows, column heads, nav) */
+  .label {
+    font-family: var(--font-geist-mono), monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.6875rem;
+    color: rgb(var(--ts-muted));
+  }
+  /* faint terminal grid background */
+  .grid-bg {
+    background-image:
+      linear-gradient(rgb(var(--ts-line) / 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--ts-line) / 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+}
+
+/* staggered reveal for board rows (REQ: page-load animation) */
+@keyframes ts-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.reveal {
+  opacity: 0;
+  animation: ts-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    animation: none;
+    opacity: 1;
+  }
+}
