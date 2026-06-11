@@ -19,7 +19,7 @@
 //   - CR-04: NO second chain-head / engine read here — rate() already pinned the
 //     block; grade/confidence come straight from its doc.
 
-import { parseEventLogs, type Hex } from "viem";
+import { parseEventLogs, getAddress, type Hex } from "viem";
 import { mantle } from "viem/chains";
 import { rate as defaultRate } from "./rate.js";
 import { canonicalizeDoc } from "./hash.js";
@@ -70,9 +70,14 @@ export async function publishRatingFor(
       address: registry,
       abi: ratingRegistryAbi,
       functionName: "publishRating",
-      // cid is the BARE CID (D-02); grade/confidence come straight from the rate() doc
+      // cid is the BARE CID (D-02); grade/confidence come straight from the rate() doc.
+      // getAddress normalizes the subject to canonical EIP-55: STATIC subject
+      // addresses may carry a non-canonical checksum (the read path tolerates it,
+      // but the write path strict-validates and would reject it). The on-chain
+      // subject is a 20-byte value, so normalizing the write arg does NOT change
+      // the pinned doc or the reasoningHash — verifiability is unaffected.
       args: [
-        doc.subject.address as `0x${string}`,
+        getAddress(doc.subject.address),
         doc.grade.uint8,
         reasoningHash,
         doc.confidence,

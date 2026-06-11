@@ -129,7 +129,7 @@ describe("[3-04-01] publishRatingFor — shared pipeline, mock path", () => {
 
     const a = captured.writeArgs!;
     expect(a.functionName).toBe("publishRating");
-    expect(a.args[0]).toBe(doc.subject.address); // subject
+    expect(a.args[0]).toBe(getAddress(doc.subject.address)); // subject (normalized EIP-55)
     expect(a.args[1]).toBe(doc.grade.uint8); // grade
     expect(a.args[2]).toBe(computeReasoningHash(doc)); // reasoningHash
     expect(a.args[3]).toBe(doc.confidence); // confidence
