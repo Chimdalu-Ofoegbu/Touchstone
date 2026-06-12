@@ -1,7 +1,16 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Board, type BoardEntry } from "@/components/board";
-import { getBoard, getRatingHistory, EXPLORER, RATING_REGISTRY } from "@/lib/touchstone";
+import {
+  getBoard,
+  getRatingHistory,
+  EXPLORER,
+  RATING_REGISTRY,
+  IDENTITY_REGISTRY,
+  AGENT_TOKEN_ID,
+  AGENT_ADDRESS,
+  shortHash,
+} from "@/lib/touchstone";
 
 // Live on-chain data: read fresh every request so a newly published rating shows.
 export const dynamic = "force-dynamic";
@@ -65,7 +74,7 @@ export default async function Home() {
           </header>
 
           {/* editorial lede — vertically centered, center-aligned */}
-          <section className="flex flex-col items-start border-b rule pt-28 pb-40 text-left md:pt-[168px]">
+          <section className="flex flex-col items-start border-b rule pt-28 pb-20 text-left md:pt-[168px]">
             <p className="label mb-3">The agentic rating agency</p>
             <div className="grid w-full gap-x-16 gap-y-8 md:grid-cols-[1fr_auto] md:items-end">
               <h1 className="font-serif text-4xl md:text-display max-w-none text-balance">
@@ -92,6 +101,75 @@ export default async function Home() {
             <p className="label">Mantle RPC unavailable — retrying on refresh</p>
           </section>
         )}
+
+        {/* footer */}
+        <footer className="border-t rule-strong py-10">
+          <div className="grid gap-8 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
+            <div>
+              <Link href="/" className="font-serif text-xl leading-none">
+                Touchstone
+              </Link>
+              <p className="mt-3 max-w-xs text-xs leading-relaxed text-muted">
+                An autonomous credit-ratings agency for on-chain real-world assets — every grade
+                published on-chain under an ERC-8004 identity, bound to a reasoning hash anyone can
+                re-verify against IPFS.
+              </p>
+            </div>
+
+            <nav className="flex flex-col items-start gap-2">
+              <span className="label mb-1">Explore</span>
+              <Link href="/" className="text-sm text-muted transition-colors hover:text-ink">
+                Ratings board
+              </Link>
+              <Link
+                href="/track-record"
+                className="text-sm text-muted transition-colors hover:text-ink"
+              >
+                Track record
+              </Link>
+            </nav>
+
+            <nav className="flex flex-col items-start gap-2">
+              <span className="label mb-1">On-chain</span>
+              <a
+                href={`${EXPLORER}/address/${RATING_REGISTRY}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-muted transition-colors hover:text-ink"
+              >
+                Rating registry ↗
+              </a>
+              <a
+                href={`${EXPLORER}/token/${IDENTITY_REGISTRY}?a=${AGENT_TOKEN_ID.toString()}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-muted transition-colors hover:text-ink"
+              >
+                ERC-8004 identity #{AGENT_TOKEN_ID.toString()} ↗
+              </a>
+              <a
+                href={`${EXPLORER}/address/${AGENT_ADDRESS}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-mono text-sm text-muted transition-colors hover:text-ink"
+              >
+                Agent {shortHash(AGENT_ADDRESS)} ↗
+              </a>
+            </nav>
+
+            <div className="flex flex-col items-start gap-2">
+              <span className="label mb-1">Network</span>
+              <span className="text-sm text-muted">Mantle Mainnet</span>
+              <span className="text-sm text-muted">Chain ID 5000</span>
+              <span className="font-mono text-2xs text-faint">Reasoning pinned to IPFS</span>
+            </div>
+          </div>
+
+          <div className="mt-10 flex flex-col gap-2 border-t rule pt-6 md:flex-row md:items-center md:justify-between">
+            <span className="label">Touchstone · the agentic rating agency</span>
+            <span className="label">Built on Mantle · {new Date().getFullYear()}</span>
+          </div>
+        </footer>
 
       </div>
     </main>

@@ -1,10 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { GradeChip } from "./grade-chip";
 import { Sparkline } from "./sparkline";
-import { Tooltip } from "./tooltip";
 import { familyOf, type GradeFamily, FAMILY_LABEL, CONFIDENCE_LABEL } from "@/lib/grades";
 import { relativeTime, shortHash } from "@/lib/touchstone";
 
@@ -18,6 +17,93 @@ function FilterIcon() {
         strokeLinejoin="round"
       />
     </svg>
+  );
+}
+
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg
+      width="10"
+      height="10"
+      viewBox="0 0 16 16"
+      fill="none"
+      aria-hidden="true"
+      className={`transition-transform ${open ? "rotate-180" : ""}`}
+    >
+      <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Grade-family filter as a single dropdown (replaces the row of toggle buttons). */
+function FilterDropdown({
+  value,
+  onChange,
+}: {
+  value: GradeFamily | "all";
+  onChange: (v: GradeFamily | "all") => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const current = FILTERS.find((f) => f.key === value) ?? FILTERS[0];
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label="Filter by grade family"
+        className="inline-flex min-h-6 items-center gap-2 border rule px-2.5 py-1 font-mono text-2xs uppercase tracking-label text-muted transition-colors hover:text-ink focus:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+      >
+        <FilterIcon />
+        <span className="text-ink">{current.label}</span>
+        <Chevron open={open} />
+      </button>
+      {open && (
+        <div
+          role="listbox"
+          aria-label="Filter by grade family"
+          className="absolute left-0 top-full z-30 mt-1 min-w-[12rem] border rule-strong bg-surface-2 py-1"
+        >
+          {FILTERS.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              role="option"
+              aria-selected={f.key === value}
+              onClick={() => {
+                onChange(f.key);
+                setOpen(false);
+              }}
+              className={[
+                "block w-full whitespace-nowrap px-3 py-1.5 text-left font-mono text-2xs uppercase tracking-label transition-colors",
+                f.key === value ? "bg-accent text-bg" : "text-muted hover:bg-surface hover:text-ink",
+              ].join(" ")}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -74,30 +160,7 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
       {/* controls */}
       <div className="-mx-6 mb-[15px] flex flex-wrap items-center justify-between gap-4 border-b rule px-6 pb-[15px] md:-mx-8 md:px-8">
         <div className="flex items-center gap-2">
-          <Tooltip label="Filter" side="top">
-            <button
-              type="button"
-              aria-label="Filter"
-              tabIndex={0}
-              className="mr-1 inline-flex min-h-6 min-w-6 items-center justify-center p-1 text-muted transition-colors hover:text-ink"
-            >
-              <FilterIcon />
-            </button>
-          </Tooltip>
-          {FILTERS.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              aria-pressed={filter === f.key}
-              className={[
-                "border px-2.5 py-1 font-mono text-2xs uppercase tracking-label transition-colors",
-                "focus:outline-none focus-visible:ring-1 focus-visible:ring-accent",
-                filter === f.key ? "bg-accent text-bg border-accent" : "text-muted hover:text-ink",
-              ].join(" ")}
-            >
-              {f.label}
-            </button>
-          ))}
+          <FilterDropdown value={filter} onChange={setFilter} />
         </div>
         <div className="flex items-center gap-2">
           <span className="label mr-1">Sort</span>
@@ -119,10 +182,10 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
       </div>
 
       {/* column heads */}
-      <div className="-mx-6 grid grid-cols-12 border-b rule-strong px-6 pb-2 label md:-mx-8 md:px-8">
+      <div className="-mx-6 grid grid-cols-12 border-b rule px-6 pb-2 label md:-mx-8 md:px-8">
         <div className="col-span-4">Subject</div>
         <div className="col-span-3">Grade</div>
-        <div className="col-span-2 text-right">Confidence</div>
+        <div className="col-span-2">Confidence</div>
         <div className="col-span-1 text-right">Trend</div>
         <div className="col-span-2 text-right">Updated</div>
       </div>
@@ -144,7 +207,7 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
               <div className="col-span-3">
                 <GradeChip uint8={e.rating.grade} />
               </div>
-              <div className="col-span-2 text-right">
+              <div className="col-span-2">
                 <div className="font-mono text-sm tnum">{e.rating.confidence}</div>
                 <div className="label">{CONFIDENCE_LABEL(e.rating.confidence)}</div>
               </div>
