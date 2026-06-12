@@ -28,3 +28,6 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+
+# Claude Code per-session local state (keep launch.json, drop worktrees)
+.claude/worktrees/
