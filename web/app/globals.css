@@ -122,3 +122,23 @@
     opacity: 1;
   }
 }
+
+/* Footer parallax — inner content drifts up as the footer scrolls into view.
+   CSS scroll-driven (Chrome 115+); graceful no-op elsewhere or reduced-motion. */
+@keyframes ts-footer-drift {
+  from {
+    transform: translateY(44px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .footer-parallax {
+      animation: ts-footer-drift linear both;
+      animation-timeline: view();
+      animation-range: entry;
+    }
+  }
+}

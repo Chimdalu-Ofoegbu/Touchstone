@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import { GradeChip } from "@/components/grade-chip";
 import {
   ELIXIR,
@@ -163,6 +164,7 @@ export default function TrackRecord() {
             ← Back to the live board
           </Link>
         </section>
+        <SiteFooter />
       </div>
     </main>
   );

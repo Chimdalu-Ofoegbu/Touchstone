@@ -5,6 +5,8 @@ import { SiteHeader } from "@/components/site-header";
 import { GradeChip } from "@/components/grade-chip";
 import { DimensionBar } from "@/components/dimension-bar";
 import { VerifyControl } from "@/components/verify-control";
+import { SiteFooter } from "@/components/site-footer";
+import { TriggerRating } from "@/components/trigger-rating";
 import {
   subjectById,
   getLatestRating,
@@ -95,9 +97,16 @@ export default async function RatingDetail({ params }: { params: Promise<{ id: s
               <code className="font-mono text-ink">requestRating({shortHash(subject.address)})</code>;
               the agent listens, runs the engine, and publishes the grade here.
             </p>
-            <Link href="/" className="label mt-6 inline-flex min-h-6 items-center hover:text-ink">
-              ← Back to board
-            </Link>
+            <div className="mt-6 flex flex-wrap items-center gap-4">
+              <TriggerRating
+                subjectId={subject.id}
+                subjectAddress={subject.address}
+                className="inline-flex min-h-6 items-center gap-1 border border-accent bg-accent px-4 py-2 font-mono text-2xs uppercase tracking-label text-bg transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent disabled:opacity-60"
+              />
+              <Link href="/" className="label inline-flex min-h-6 items-center hover:text-ink">
+                ← Back to board
+              </Link>
+            </div>
           </section>
         ) : (
           <>
@@ -183,6 +192,7 @@ export default async function RatingDetail({ params }: { params: Promise<{ id: s
             </section>
           </>
         )}
+        <SiteFooter />
       </div>
     </main>
   );
