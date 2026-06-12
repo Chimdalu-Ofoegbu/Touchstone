@@ -9,15 +9,13 @@ export function SiteHeader({ crumb }: { crumb?: { href: string; label: string } 
         <Link href="/" className="font-serif text-2xl leading-none">
           Touchstone
         </Link>
-        {crumb ? (
+        {crumb && (
           <Link
             href={crumb.href}
             className="label inline-flex min-h-6 items-center hover:text-ink transition-colors"
           >
             ← {crumb.label}
           </Link>
-        ) : (
-          <span className="label hidden sm:inline">Credit ratings · Mantle RWA</span>
         )}
       </div>
       <nav className="flex items-center gap-5">

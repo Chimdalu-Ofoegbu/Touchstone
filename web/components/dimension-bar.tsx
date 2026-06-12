@@ -23,17 +23,17 @@ export function DimensionBar({ dim }: { dim: Dimension }) {
   const color = `rgb(var(--ts-${tier(dim.score)}))`;
 
   return (
-    <div className="border-b rule py-5">
+    <div className="group border-b rule py-5 transition-colors hover:bg-surface-2">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-controls={panelId}
-        className="block w-full text-left"
+        className="block w-full cursor-pointer text-left"
       >
         <div className="flex items-baseline justify-between gap-4">
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="text-sm">{meta.label}</span>
+            <span className="text-sm transition-colors group-hover:text-accent">{meta.label}</span>
             <span className="label">{dim.band_hit.label}</span>
           </div>
           <div className="flex items-center gap-3">
@@ -41,7 +41,10 @@ export function DimensionBar({ dim }: { dim: Dimension }) {
               {dim.score}
               <span className="text-faint">/100</span>
             </span>
-            <span className="label w-3 text-center" aria-hidden="true">
+            <span
+              className="inline-flex h-5 w-5 items-center justify-center border rule-strong font-mono text-base leading-none text-muted transition-colors group-hover:border-accent group-hover:text-accent"
+              aria-hidden="true"
+            >
               {open ? "−" : "+"}
             </span>
           </div>

@@ -36,11 +36,17 @@ export default async function RatingDetail({ params }: { params: Promise<{ id: s
   return (
     <main id="main-content" className="min-h-screen grid-bg">
       <div className="mx-auto max-w-terminal px-6 md:px-10">
-        <SiteHeader crumb={{ href: "/", label: "Board" }} />
+        <SiteHeader />
 
         {/* subject + grade hero */}
         <section className="grid gap-8 border-b rule py-10 md:grid-cols-[1fr_auto] md:items-center">
           <div>
+            <Link
+              href="/"
+              className="label relative -top-3 mb-3 inline-flex min-h-6 items-center hover:text-ink transition-colors"
+            >
+              ← Back to home
+            </Link>
             <div className="flex flex-wrap items-baseline gap-x-3">
               <span className="font-mono text-lg">{subject.id}</span>
               <a
@@ -65,7 +71,7 @@ export default async function RatingDetail({ params }: { params: Promise<{ id: s
               <p className="mt-1 max-w-xs text-xs text-muted md:ml-auto">{FAMILY_MEANING[fam]}</p>
               <div className="mt-4 flex gap-6 md:justify-end">
                 <div>
-                  <div className="font-mono text-sm tnum">{rating.confidence}</div>
+                  <div className="font-mono text-sm tnum text-left">{rating.confidence}</div>
                   <div className="label">Confidence · {CONFIDENCE_LABEL(rating.confidence)}</div>
                 </div>
                 <div>
@@ -116,7 +122,11 @@ export default async function RatingDetail({ params }: { params: Promise<{ id: s
             {doc?.overall_rationale && (
               <section className="border-t rule py-8">
                 <h2 className="label mb-3">Overall</h2>
-                <p className="max-w-3xl font-serif text-xl leading-snug">{doc.overall_rationale}</p>
+                <div className="max-w-none space-y-4 font-sans text-lg leading-relaxed">
+                  {toParagraphs(doc.overall_rationale).map((para, i) => (
+                    <p key={i}>{para}</p>
+                  ))}
+                </div>
               </section>
             )}
 
@@ -185,4 +195,17 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
       <dd className="tnum text-right text-ink">{children}</dd>
     </div>
   );
+}
+
+/** Split a free-text rationale into display paragraphs: honor explicit blank-line
+ *  breaks if the source has them, otherwise group ~2 sentences per paragraph. */
+function toParagraphs(text: string): string[] {
+  const byBreaks = text.split(/\n{2,}/).map((s) => s.trim()).filter(Boolean);
+  if (byBreaks.length > 1) return byBreaks;
+  const sentences = text.split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean);
+  const out: string[] = [];
+  for (let i = 0; i < sentences.length; i += 2) {
+    out.push(sentences.slice(i, i + 2).join(" "));
+  }
+  return out;
 }
