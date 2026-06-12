@@ -4,8 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { GradeChip } from "./grade-chip";
 import { Sparkline } from "./sparkline";
+import { TriggerRating } from "./trigger-rating";
 import { familyOf, type GradeFamily, FAMILY_LABEL, CONFIDENCE_LABEL } from "@/lib/grades";
-import { relativeTime, shortHash } from "@/lib/touchstone";
+import { relativeTime, shortHash, RERATE_COOLDOWN_S } from "@/lib/touchstone";
+import { usePending } from "@/lib/pending";
 
 function FilterIcon() {
   return (
@@ -139,6 +141,14 @@ const FILTERS: { key: GradeFamily | "all"; label: string }[] = [
 export function Board({ entries }: { entries: BoardEntry[] }) {
   const [sort, setSort] = useState<SortKey>("grade");
   const [filter, setFilter] = useState<GradeFamily | "all">("all");
+  const { isPending } = usePending();
+  // re-evaluate re-rate eligibility live; 0 until mounted so SSR and CSR match.
+  const [now, setNow] = useState(0);
+  useEffect(() => {
+    setNow(Math.floor(Date.now() / 1000));
+    const iv = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 15_000);
+    return () => clearInterval(iv);
+  }, []);
 
   const rows = useMemo(() => {
     const filtered = entries.filter(
@@ -158,7 +168,7 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
   return (
     <section className="mb-16 border rule-strong p-6 pb-0 md:p-8 md:pb-0">
       {/* controls */}
-      <div className="-mx-6 mb-[15px] flex flex-wrap items-center justify-between gap-4 border-b rule px-6 pb-[15px] md:-mx-8 md:px-8">
+      <div className="reveal -mx-6 mb-[15px] flex flex-wrap items-center justify-between gap-4 border-b rule px-6 pb-[15px] md:-mx-8 md:px-8">
         <div className="flex items-center gap-2">
           <FilterDropdown value={filter} onChange={setFilter} />
         </div>
@@ -182,7 +192,10 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
       </div>
 
       {/* column heads */}
-      <div className="-mx-6 grid grid-cols-12 border-b rule px-6 pb-2 label md:-mx-8 md:px-8">
+      <div
+        className="reveal -mx-6 grid grid-cols-12 border-b rule px-6 pb-2 label md:-mx-8 md:px-8"
+        style={{ animationDelay: "60ms" }}
+      >
         <div className="col-span-4">Subject</div>
         <div className="col-span-3">Grade</div>
         <div className="col-span-2">Confidence</div>
@@ -191,41 +204,92 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
       </div>
 
       {/* rows */}
-      {rows.map((e, i) => (
-        <Link
-          key={e.id}
-          href={`/rating/${e.id}`}
-          className="reveal -mx-6 grid grid-cols-12 items-center border-b rule px-6 py-5 group transition-colors hover:bg-surface/60 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent last:border-b-0 md:-mx-8 md:px-8"
-          style={{ animationDelay: `${i * 70}ms` }}
-        >
+      {rows.map((e, i) => {
+        const rowClass =
+          "reveal -mx-6 grid grid-cols-12 items-center border-b rule px-6 py-5 group transition-colors last:border-b-0 md:-mx-8 md:px-8";
+        const style = { animationDelay: `${120 + i * 70}ms` };
+        const pending = isPending(e.id);
+
+        // Subject cell for interactive rows (id links to detail without nesting in an <a>).
+        const subjectCell = (
           <div className="col-span-4 pr-3">
-            <div className="font-mono text-sm group-hover:text-accent transition-colors">{e.id}</div>
+            <Link href={`/rating/${e.id}`} className="font-mono text-sm transition-colors hover:text-accent">
+              {e.id}
+            </Link>
             <div className="text-xs text-muted">{e.name}</div>
           </div>
-          {e.rating ? (
-            <>
-              <div className="col-span-3">
-                <GradeChip uint8={e.rating.grade} />
+        );
+
+        // Unrated: trigger a first rating.
+        if (!e.rating) {
+          return (
+            <div key={e.id} className={rowClass} style={style}>
+              {subjectCell}
+              <div className="col-span-8 flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+                <span className="label text-faint">Not yet rated</span>
+                <span className="label text-faint" aria-hidden="true">
+                  ·
+                </span>
+                <TriggerRating subjectId={e.id} subjectAddress={e.address} />
               </div>
-              <div className="col-span-2">
-                <div className="font-mono text-sm tnum">{e.rating.confidence}</div>
-                <div className="label">{CONFIDENCE_LABEL(e.rating.confidence)}</div>
-              </div>
-              <div className="col-span-1 flex justify-end">
-                <Sparkline series={e.series} />
-              </div>
-              <div className="col-span-2 text-right">
-                <div className="font-mono text-xs tnum text-muted">{relativeTime(e.rating.timestamp)}</div>
-                <div className="font-mono text-2xs text-faint">{shortHash(e.rating.reasoningHash)}</div>
-              </div>
-            </>
-          ) : (
-            <div className="col-span-8 text-right">
-              <span className="label">Not yet rated · trigger a rating</span>
             </div>
-          )}
-        </Link>
-      ))}
+          );
+        }
+
+        // Rated. The row only hosts a control (re-rate, or "scoring") once the rating
+        // is past the cooldown or a re-rate is in flight; otherwise it's a full-row link.
+        const rerateEligible = now > 0 && now - e.rating.timestamp >= RERATE_COOLDOWN_S;
+        const interactive = pending || rerateEligible;
+
+        const ratedCells = (
+          <>
+            <div className="col-span-3">
+              <GradeChip uint8={e.rating.grade} />
+            </div>
+            <div className="col-span-2">
+              <div className="font-mono text-sm tnum">{e.rating.confidence}</div>
+              <div className="label">{CONFIDENCE_LABEL(e.rating.confidence)}</div>
+            </div>
+            <div className="col-span-1 flex justify-end">
+              <Sparkline series={e.series} />
+            </div>
+            <div className="col-span-2 text-right">
+              <div className="font-mono text-xs tnum text-muted">{relativeTime(e.rating.timestamp)}</div>
+              {interactive ? (
+                <div className="mt-0.5 flex justify-end">
+                  <TriggerRating subjectId={e.id} subjectAddress={e.address} rerate />
+                </div>
+              ) : (
+                <div className="font-mono text-2xs text-faint">{shortHash(e.rating.reasoningHash)}</div>
+              )}
+            </div>
+          </>
+        );
+
+        if (interactive) {
+          return (
+            <div key={e.id} className={rowClass} style={style}>
+              {subjectCell}
+              {ratedCells}
+            </div>
+          );
+        }
+
+        return (
+          <Link
+            key={e.id}
+            href={`/rating/${e.id}`}
+            className={`${rowClass} hover:bg-surface/60 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent`}
+            style={style}
+          >
+            <div className="col-span-4 pr-3">
+              <div className="font-mono text-sm group-hover:text-accent transition-colors">{e.id}</div>
+              <div className="text-xs text-muted">{e.name}</div>
+            </div>
+            {ratedCells}
+          </Link>
+        );
+      })}
     </section>
   );
 }

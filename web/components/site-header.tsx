@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
+import { ConnectWallet } from "./connect-wallet";
 
 /** Shared masthead. `crumb` renders a back link next to the wordmark. */
 export function SiteHeader({ crumb }: { crumb?: { href: string; label: string } }) {
@@ -25,6 +26,7 @@ export function SiteHeader({ crumb }: { crumb?: { href: string; label: string } 
         >
           Track record
         </Link>
+        <ConnectWallet />
         <ThemeToggle />
       </nav>
     </header>

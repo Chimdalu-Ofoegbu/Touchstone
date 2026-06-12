@@ -20,6 +20,11 @@ export const AGENT_ADDRESS = getAddress("0xb27c7fa15D25E880Ba4a9a508e166538e106F
 export const AGENT_TOKEN_ID = 114n;
 export const EXPLORER = "https://mantlescan.xyz";
 
+// Per-subject re-rate cooldown (seconds) — UI mirror of the watcher's RERATE_COOLDOWN_S.
+// A subject can be re-triggered once its latest on-chain rating is older than this.
+// Demo default 60s; set NEXT_PUBLIC_RERATE_COOLDOWN_S=21600 (6h) for production.
+export const RERATE_COOLDOWN_S = Number(process.env.NEXT_PUBLIC_RERATE_COOLDOWN_S ?? 60);
+
 export type SubjectId = "USDY" | "cmETH" | "FBTC";
 
 export type Subject = {

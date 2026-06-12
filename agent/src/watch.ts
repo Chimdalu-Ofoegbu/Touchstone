@@ -22,6 +22,11 @@ import type { SubjectId } from "./subjects/types.js";
 const REGISTRY = process.env.RATING_REGISTRY_ADDRESS as `0x${string}`;
 const POLL_MS = 4_000;
 const HEARTBEAT_MS = 15_000;
+// Per-subject re-rate cooldown (seconds). The watcher skips a RatingRequested for a
+// subject it already scored within this window — the real, un-bypassable rate limit
+// (a direct contract call can still emit the event, but we won't re-score/publish).
+// Demo default 60s; set RERATE_COOLDOWN_S=21600 (6h) for production. 0 disables it.
+const RERATE_COOLDOWN_S = Number(process.env.RERATE_COOLDOWN_S ?? 60);
 
 export type WatchDeps = {
   publishRatingFor: (subject: SubjectId) => Promise<unknown>;
@@ -30,6 +35,13 @@ export type WatchDeps = {
   /** Injectable loggers (tests silence them; production uses console). */
   log?: (msg: string) => void;
   error?: (msg: string) => void;
+  /** Re-rate cooldown in seconds; 0 (or omitted) disables the debounce. */
+  cooldownS?: number;
+  /**
+   * Reads the on-chain timestamp (unix seconds) of a subject's latest rating,
+   * 0 if none. Injected by the live daemon; omitted in tests (debounce off).
+   */
+  latestRatingTs?: (subject: `0x${string}`) => Promise<number>;
 };
 
 /** Minimal shape of a decoded RatingRequested log (only the subject is used). */
@@ -63,19 +75,39 @@ export function handleLogs(
     inFlight.add(id);
     // Demo-clear "agent reacting" beat (REQ-10) — reads on camera.
     log("\n>>> RatingRequested CAUGHT -> " + id + " (" + address + ") — running the rating pipeline now...\n");
-    publishRatingFor(id)
-      .then((r) => {
-        const res = r as { txHash?: string; cid?: string; reasoningHash?: string };
-        log(
-          "\n>>> PUBLISHED " + id +
-            "\n      tx:            " + res.txHash +
-            "\n      cid:           " + res.cid +
-            "\n      reasoningHash: " + res.reasoningHash + "\n",
-        );
-      })
+    scoreSubject(id, address, deps)
       .catch((e) => error("\n>>> FAILED " + id + " -> " + redactRpcError(e).message + "\n"))
       .finally(() => inFlight.delete(id));
   }
+}
+
+/**
+ * Cooldown debounce + publish for one caught request. If a latestRatingTs reader
+ * is wired and the subject was rated within cooldownS, skip the re-rate (the real
+ * rate limit — protects Claude/IPFS/gas even against direct contract calls).
+ */
+async function scoreSubject(id: SubjectId, address: `0x${string}`, deps: WatchDeps): Promise<void> {
+  const log = deps.log ?? ((m) => console.log(m));
+  const cooldownS = deps.cooldownS ?? 0;
+  if (cooldownS > 0 && deps.latestRatingTs) {
+    const ts = await deps.latestRatingTs(address);
+    const ageS = Math.floor(Date.now() / 1000) - ts;
+    if (ts > 0 && ageS < cooldownS) {
+      log("\n>>> COOLDOWN " + id + " — rated " + ageS + "s ago (< " + cooldownS + "s), skipping re-rate\n");
+      return;
+    }
+  }
+  const r = (await deps.publishRatingFor(id)) as {
+    txHash?: string;
+    cid?: string;
+    reasoningHash?: string;
+  };
+  log(
+    "\n>>> PUBLISHED " + id +
+      "\n      tx:            " + r.txHash +
+      "\n      cid:           " + r.cid +
+      "\n      reasoningHash: " + r.reasoningHash + "\n",
+  );
 }
 
 /**
@@ -140,10 +172,22 @@ async function main() {
   const deps: WatchDeps = {
     publishRatingFor,
     inFlight: new Set<SubjectId>(),
+    cooldownS: RERATE_COOLDOWN_S,
+    // Real, on-chain-anchored rate limit: skip re-scoring a subject rated within the window.
+    latestRatingTs: async (subject) => {
+      const r = await publicClient.readContract({
+        address: REGISTRY,
+        abi: ratingRegistryAbi,
+        functionName: "latestRating",
+        args: [subject],
+      });
+      return Number((r as { timestamp: bigint }).timestamp);
+    },
   };
   startWatch(deps);
   console.log("\n=== Touchstone agent watcher LIVE ===");
   console.log("Listening for RatingRequested on " + REGISTRY + " (Mantle Mainnet, chain 5000)");
+  console.log("Re-rate cooldown: " + RERATE_COOLDOWN_S + "s (per subject)");
   console.log("Trigger with: requestRating(<subject address>)  |  subjects: USDY, cmETH, FBTC\n");
   setInterval(() => {
     console.log(
