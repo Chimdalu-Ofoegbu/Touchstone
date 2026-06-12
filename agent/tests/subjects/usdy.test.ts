@@ -33,7 +33,7 @@ describe("[2-02-02 USDY] adapter", () => {
     const facts = await fetchUsdy(75_000_000n);
     expect(facts.subject.chainId).toBe(5000);
     expect(facts.subject.address).toBe(
-      "0x5be26527e817998A7206475496fDE1E68957c5A6",
+      "0x5bE26527e817998A7206475496fDE1E68957c5A6",
     );
     expect(facts.subject.ticker).toBe("USDY");
     expect(facts.subject.name.length).toBeGreaterThan(0);

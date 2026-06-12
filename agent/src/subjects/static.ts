@@ -38,7 +38,7 @@ export type StaticSubject = {
 export const STATIC: Record<SubjectId, StaticSubject> = {
   USDY: {
     name: "Ondo U.S. Dollar Yield",
-    address: "0x5be26527e817998A7206475496fDE1E68957c5A6",
+    address: "0x5bE26527e817998A7206475496fDE1E68957c5A6",
     collateral: "short-term US Treasuries + bank deposits",
     audit: ["Code4rena 2023", "Halborn 2024"],
     reserveAttestation: "monthly attestation by Ankura Trust",
@@ -58,7 +58,7 @@ export const STATIC: Record<SubjectId, StaticSubject> = {
   },
   cmETH: {
     name: "Mantle Restaked ETH",
-    address: "0xE6829d9a7ee3040e1276Fa75293Bde931859e8fA",
+    address: "0xE6829d9a7eE3040e1276Fa75293Bde931859e8fA",
     collateral:
       "mETH receipt restaked across EigenLayer, Symbiotic, Karak",
     audit: ["Sigma Prime", "Hexens"],

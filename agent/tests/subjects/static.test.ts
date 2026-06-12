@@ -35,13 +35,13 @@ describe("[2-02-01a] STATIC facts module", () => {
 
   it("STATIC.USDY address is the locked Mantle Mainnet address", () => {
     expect(STATIC.USDY.address).toBe(
-      "0x5be26527e817998A7206475496fDE1E68957c5A6",
+      "0x5bE26527e817998A7206475496fDE1E68957c5A6",
     );
   });
 
   it("STATIC.cmETH address is the locked Mantle Mainnet address", () => {
     expect(STATIC.cmETH.address).toBe(
-      "0xE6829d9a7ee3040e1276Fa75293Bde931859e8fA",
+      "0xE6829d9a7eE3040e1276Fa75293Bde931859e8fA",
     );
   });
 

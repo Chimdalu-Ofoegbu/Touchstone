@@ -71,11 +71,12 @@ export async function publishRatingFor(
       abi: ratingRegistryAbi,
       functionName: "publishRating",
       // cid is the BARE CID (D-02); grade/confidence come straight from the rate() doc.
-      // getAddress normalizes the subject to canonical EIP-55: STATIC subject
-      // addresses may carry a non-canonical checksum (the read path tolerates it,
-      // but the write path strict-validates and would reject it). The on-chain
-      // subject is a 20-byte value, so normalizing the write arg does NOT change
-      // the pinned doc or the reasoningHash — verifiability is unaffected.
+      // getAddress normalizes the subject to canonical EIP-55 (defense-in-depth):
+      // the engine does NOT override doc.subject.address (it's echoed from Claude),
+      // so any non-canonical checksum that reached the doc would be rejected by
+      // viem's strict-validating write path. The on-chain subject is a 20-byte
+      // value, so normalizing the write arg does NOT change the pinned doc or the
+      // reasoningHash — verifiability is unaffected. (STATIC is now canonical too.)
       args: [
         getAddress(doc.subject.address),
         doc.grade.uint8,

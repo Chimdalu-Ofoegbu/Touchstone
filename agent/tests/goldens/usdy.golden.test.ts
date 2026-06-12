@@ -42,7 +42,7 @@ function makeClient(
     subject: {
       name: ticker,
       ticker,
-      address: "0x5be26527e817998A7206475496fDE1E68957c5A6" as `0x${string}`,
+      address: "0x5bE26527e817998A7206475496fDE1E68957c5A6" as `0x${string}`,
       chain_id: 5000 as const,
     },
     grade: { letter, uint8 },

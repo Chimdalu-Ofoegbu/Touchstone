@@ -28,7 +28,7 @@ function makeClient(letter: GradeLetter, uint8: number) {
     subject: {
       name: "cmETH",
       ticker: "cmETH" as const,
-      address: "0xE6829d9a7ee3040e1276Fa75293Bde931859e8fA" as `0x${string}`,
+      address: "0xE6829d9a7eE3040e1276Fa75293Bde931859e8fA" as `0x${string}`,
       chain_id: 5000 as const,
     },
     grade: { letter, uint8 },

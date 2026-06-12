@@ -59,7 +59,7 @@ describe("[2-05-01b] validateCitations — T-2-07 post-hoc fabrication check", (
       subject: {
         name: "u",
         ticker: "USDY",
-        address: "0x5be26527e817998A7206475496fDE1E68957c5A6",
+        address: "0x5bE26527e817998A7206475496fDE1E68957c5A6",
         chainId: 5000,
       },
       ingestBlock: 0,
@@ -74,7 +74,7 @@ describe("[2-05-01b] validateCitations — T-2-07 post-hoc fabrication check", (
       subject: {
         name: "u",
         ticker: "USDY",
-        address: "0x5be26527e817998A7206475496fDE1E68957c5A6",
+        address: "0x5bE26527e817998A7206475496fDE1E68957c5A6",
         chain_id: 5000,
       },
       grade: { letter: "A", uint8: 2 },
@@ -171,7 +171,7 @@ describe("[2-05-01b] validateCitations — T-2-07 post-hoc fabrication check", (
 
   it("accepts citations pointing at addresses present in SubjectFacts (case-insensitive)", () => {
     const addr =
-      "0x5be26527e817998A7206475496fDE1E68957c5A6" as `0x${string}`;
+      "0x5bE26527e817998A7206475496fDE1E68957c5A6" as `0x${string}`;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const facts: any = {
       subject: {

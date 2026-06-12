@@ -29,7 +29,7 @@ describe("[2-02-03 cmETH] adapter", () => {
     const facts = await fetchCmeth(75_000_000n);
     expect(facts.subject.chainId).toBe(5000);
     expect(facts.subject.address).toBe(
-      "0xE6829d9a7ee3040e1276Fa75293Bde931859e8fA",
+      "0xE6829d9a7eE3040e1276Fa75293Bde931859e8fA",
     );
     expect(facts.subject.ticker).toBe("cmETH");
   });

@@ -37,7 +37,7 @@ import {
 } from "../src/schema.js";
 
 const ANVIL = "http://127.0.0.1:8545";
-const SUBJECT = getAddress("0x5be26527e817998A7206475496fDE1E68957c5A6"); // USDY (checksummed)
+const SUBJECT = getAddress("0x5bE26527e817998A7206475496fDE1E68957c5A6"); // USDY (canonical EIP-55)
 
 const doc: ReasoningDocument = parseReasoningDocument({
   schema_version: "1.0.0",

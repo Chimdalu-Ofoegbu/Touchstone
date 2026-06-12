@@ -25,7 +25,7 @@ const subject: SubjectFacts = {
   subject: {
     name: "Ondo U.S. Dollar Yield",
     ticker: "USDY",
-    address: "0x5be26527e817998A7206475496fDE1E68957c5A6",
+    address: "0x5bE26527e817998A7206475496fDE1E68957c5A6",
     chainId: 5000,
   },
   ingestBlock: 75_000_000,

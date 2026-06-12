@@ -6,7 +6,7 @@ const validDoc = {
   subject: {
     name: "Ondo U.S. Dollar Yield",
     ticker: "USDY",
-    address: "0x5be26527e817998A7206475496fDE1E68957c5A6",
+    address: "0x5bE26527e817998A7206475496fDE1E68957c5A6",
     chain_id: 5000,
   },
   grade: { letter: "A", uint8: 2 },
@@ -25,7 +25,7 @@ const validDoc = {
           value: "Ondo Finance",
           // W4 fix: seed uses a real 0x address so the static_config test below is a meaningful mutation.
           source: {
-            address: "0x5be26527e817998A7206475496fDE1E68957c5A6",
+            address: "0x5bE26527e817998A7206475496fDE1E68957c5A6",
             function: "issuer()",
             block_number: 75000000,
           },
@@ -45,7 +45,7 @@ const validDoc = {
           label: "implementation",
           value: "0x3b355A7A25E75A320f631F9736afB3Dcc9F3Ef66",
           source: {
-            address: "0x5be26527e817998A7206475496fDE1E68957c5A6",
+            address: "0x5bE26527e817998A7206475496fDE1E68957c5A6",
             function: "implementation()",
             block_number: 75000000,
           },

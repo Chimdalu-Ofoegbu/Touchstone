@@ -10,7 +10,7 @@ import { describe, it, expect } from "vitest";
 import { handleLogs, type WatchDeps } from "../src/watch.js";
 import type { SubjectId } from "../src/subjects/types.js";
 
-const USDY: `0x${string}` = "0x5be26527e817998A7206475496fDE1E68957c5A6";
+const USDY: `0x${string}` = "0x5bE26527e817998A7206475496fDE1E68957c5A6";
 const UNKNOWN: `0x${string}` = "0x000000000000000000000000000000000000dEaD";
 
 const flush = () => new Promise((r) => setTimeout(r, 0));

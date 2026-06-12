@@ -16,7 +16,7 @@ const baseDoc: ReasoningDocument = parseReasoningDocument({
   subject: {
     name: "U",
     ticker: "USDY",
-    address: "0x5be26527e817998A7206475496fDE1E68957c5A6",
+    address: "0x5bE26527e817998A7206475496fDE1E68957c5A6",
     chain_id: 5000,
   },
   grade: { letter: "A", uint8: 2 },
@@ -135,7 +135,7 @@ describe("[2-04-01a] canonicalizeDoc — RFC 8785 JCS shape", () => {
           chain_id: 5000,
           name: "U",
           ticker: "USDY",
-          address: "0x5be26527e817998A7206475496fDE1E68957c5A6",
+          address: "0x5bE26527e817998A7206475496fDE1E68957c5A6",
         },
       }),
     );
@@ -146,7 +146,7 @@ describe("[2-04-01a] canonicalizeDoc — RFC 8785 JCS shape", () => {
           name: "U",
           ticker: "USDY",
           chain_id: 5000,
-          address: "0x5be26527e817998A7206475496fDE1E68957c5A6",
+          address: "0x5bE26527e817998A7206475496fDE1E68957c5A6",
         },
       }),
     );
