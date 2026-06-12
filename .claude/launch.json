@@ -5,7 +5,8 @@
       "name": "touchstone-web",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["-C", "web", "dev"],
-      "port": 3001
+      "port": 3001,
+      "autoPort": false
     }
   ]
 }
