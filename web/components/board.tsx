@@ -70,9 +70,9 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
   }, [entries, sort, filter]);
 
   return (
-    <section className="py-8">
+    <section className="mb-16 border rule-strong p-6 pb-0 md:p-8 md:pb-0">
       {/* controls */}
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
+      <div className="-mx-6 mb-[15px] flex flex-wrap items-center justify-between gap-4 border-b rule px-6 pb-[15px] md:-mx-8 md:px-8">
         <div className="flex items-center gap-2">
           <Tooltip label="Filter" side="top">
             <button
@@ -90,8 +90,9 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
               onClick={() => setFilter(f.key)}
               aria-pressed={filter === f.key}
               className={[
-                "inline-flex min-h-6 items-center border px-2.5 py-1 font-mono text-2xs uppercase tracking-label transition-colors",
-                filter === f.key ? "bg-accent-lo text-white border-accent-lo" : "text-muted hover:text-ink",
+                "border px-2.5 py-1 font-mono text-2xs uppercase tracking-label transition-colors",
+                "focus:outline-none focus-visible:ring-1 focus-visible:ring-accent",
+                filter === f.key ? "bg-accent text-bg border-accent" : "text-muted hover:text-ink",
               ].join(" ")}
             >
               {f.label}
@@ -106,8 +107,9 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
               onClick={() => setSort(s.key)}
               aria-pressed={sort === s.key}
               className={[
-                "inline-flex min-h-6 items-center border px-2.5 py-1 font-mono text-2xs uppercase tracking-label transition-colors",
-                sort === s.key ? "bg-accent-lo text-white border-accent-lo" : "text-muted hover:text-ink",
+                "border px-2.5 py-1 font-mono text-2xs uppercase tracking-label transition-colors",
+                "focus:outline-none focus-visible:ring-1 focus-visible:ring-accent",
+                sort === s.key ? "bg-accent text-bg border-accent" : "text-muted hover:text-ink",
               ].join(" ")}
             >
               {s.label}
@@ -117,7 +119,7 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
       </div>
 
       {/* column heads */}
-      <div className="grid grid-cols-12 label border-b rule-strong pb-2">
+      <div className="-mx-6 grid grid-cols-12 border-b rule-strong px-6 pb-2 label md:-mx-8 md:px-8">
         <div className="col-span-4">Subject</div>
         <div className="col-span-3">Grade</div>
         <div className="col-span-2 text-right">Confidence</div>
@@ -130,7 +132,7 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
         <Link
           key={e.id}
           href={`/rating/${e.id}`}
-          className="reveal grid grid-cols-12 items-center border-b rule py-5 group transition-colors hover:bg-surface/60 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+          className="reveal -mx-6 grid grid-cols-12 items-center border-b rule px-6 py-5 group transition-colors hover:bg-surface/60 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent last:border-b-0 md:-mx-8 md:px-8"
           style={{ animationDelay: `${i * 70}ms` }}
         >
           <div className="col-span-4 pr-3">

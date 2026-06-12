@@ -35,12 +35,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="font-sans antialiased">
-        <a href="#main-content" className="skip-link">
-          Skip to content
-        </a>
-        {children}
-      </body>
+      <body className="font-sans antialiased">{children}</body>
     </html>
   );
 }
