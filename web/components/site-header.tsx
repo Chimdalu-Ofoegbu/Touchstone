@@ -26,6 +26,12 @@ export function SiteHeader({ crumb }: { crumb?: { href: string; label: string } 
         >
           Track record
         </Link>
+        <Link
+          href="/methodology"
+          className="label hidden min-h-6 items-center hover:text-ink transition-colors sm:inline-flex"
+        >
+          Methodology
+        </Link>
         <ConnectWallet />
         <ThemeToggle />
       </nav>

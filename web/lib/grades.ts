@@ -40,6 +40,15 @@ export function letterOf(uint8: number): GradeLetter {
   return LETTERS[Math.max(0, Math.min(9, uint8))];
 }
 
+/**
+ * Composite-score floor (0..100) for each letter — mirrors the agent's
+ * GRADE_SCORE_TABLE (agent/src/dimensions/synthesize.ts) and GradeEnum.sol.
+ * A composite >= the floor (and below the next letter's) earns that grade.
+ */
+export const GRADE_MIN_SCORE: Record<GradeLetter, number> = {
+  AAA: 90, AA: 80, A: 70, BBB: 60, BB: 50, B: 40, CCC: 30, CC: 20, C: 10, D: 0,
+};
+
 /** Tailwind text/border/bg color class for a grade's family. */
 export function familyColorClass(uint8: number): {
   text: string;

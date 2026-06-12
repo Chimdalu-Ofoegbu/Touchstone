@@ -54,6 +54,9 @@ export default async function Home() {
               <Link href="/track-record" className="label hover:text-ink transition-colors">
                 Track record
               </Link>
+              <Link href="/methodology" className="label hover:text-ink transition-colors">
+                Methodology
+              </Link>
               <a
                 href={`${EXPLORER}/address/${RATING_REGISTRY}`}
                 target="_blank"
