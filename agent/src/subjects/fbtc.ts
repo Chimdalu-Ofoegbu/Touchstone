@@ -145,6 +145,29 @@ export async function fetchFbtc(blockNumber?: bigint): Promise<SubjectFacts> {
       value: STATIC.FBTC.proxyPattern,
       evidence: "Upgrade pattern declared in static config (UUPS).",
     }),
+    // contract-risk inputs the scorer grades on (D-06 recipe). Sourced from
+    // static governance config — the on-chain `paused()` flag above is the
+    // runtime state; these describe the standing capabilities/controls.
+    staticFact({
+      label: "audits",
+      value: STATIC.FBTC.audit.length ? STATIC.FBTC.audit.join(", ") : null,
+      evidence: STATIC.FBTC.audit.length
+        ? "Security audits on record: " + STATIC.FBTC.audit.join(", ") + " (static config)."
+        : "No security audits on record (static config).",
+    }),
+    staticFact({
+      label: "pausable",
+      value: String(STATIC.FBTC.pausable),
+      evidence:
+        "Pause capability per static config (true = a privileged role can halt transfers).",
+    }),
+    staticFact({
+      label: "timelock",
+      value: STATIC.FBTC.timelock,
+      evidence: STATIC.FBTC.timelock
+        ? "Privileged admin actions gated by timelock: " + STATIC.FBTC.timelock + " (static config)."
+        : "No admin timelock on record — privileged actions (incl. pause) take effect without delay (static config).",
+    }),
   ];
 
   const oracle: Fact[] = [

@@ -139,6 +139,29 @@ export async function fetchCmeth(blockNumber?: bigint): Promise<SubjectFacts> {
       value: STATIC.cmETH.proxyPattern,
       evidence: "Upgrade pattern declared in static config.",
     }),
+    // contract-risk inputs the scorer grades on (D-06 recipe). Sourced from
+    // static governance config — the on-chain `paused()` flag above is the
+    // runtime state; these describe the standing capabilities/controls.
+    staticFact({
+      label: "audits",
+      value: STATIC.cmETH.audit.length ? STATIC.cmETH.audit.join(", ") : null,
+      evidence: STATIC.cmETH.audit.length
+        ? "Security audits on record: " + STATIC.cmETH.audit.join(", ") + " (static config)."
+        : "No security audits on record (static config).",
+    }),
+    staticFact({
+      label: "pausable",
+      value: String(STATIC.cmETH.pausable),
+      evidence:
+        "Pause capability per static config (true = a privileged role can halt transfers).",
+    }),
+    staticFact({
+      label: "timelock",
+      value: STATIC.cmETH.timelock,
+      evidence: STATIC.cmETH.timelock
+        ? "Privileged admin actions gated by timelock: " + STATIC.cmETH.timelock + " (static config)."
+        : "No admin timelock on record — privileged actions (incl. pause) take effect without delay (static config).",
+    }),
   ];
 
   const oracle: Fact[] = [

@@ -60,6 +60,17 @@ const REQUIRED_LABELS = [
  *   -10 if owner missing (null value) — EOA/no-admin heuristic
  * Clamped to [0, 100].
  *
+ * Inputs (audits / pausable / timelock) are emitted by each subject adapter
+ * from static governance config (subjects/*.ts contract bucket). NOTE the
+ * -15 penalty keys on pausable AND no-timelock — it is NOT a penalty for
+ * being pausable (a pause switch is a standard RWA safety feature). It fires
+ * only when a privileged role can pause WITHOUT a timelock delay, i.e.
+ * undelayed unilateral admin control. That is a deliberate, defensible
+ * methodology stance: an audited, source-verified token that is pausable with
+ * no timelock nets +15 (audits) -15 (undelayed pause) and settles mid-band —
+ * the rationale should say exactly that ("audited & verified, but admin can
+ * pause without a timelock delay").
+ *
  * Returns `{ index: null }` when ALL required facts are missing → D-07
  * (default to 50, raw_value null).
  *
