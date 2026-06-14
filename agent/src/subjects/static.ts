@@ -27,6 +27,16 @@ export type StaticSubject = {
   sourceVerified: boolean;
   implementation: `0x${string}` | null;
   proxyPattern: string;
+  /**
+   * Upgrade/admin authority, verified on-chain. Set ONLY when the proxy's
+   * owner() is not directly readable — e.g. a transparent proxy whose
+   * implementation uses AccessControl roles (not Ownable), so owner() reverts
+   * and the real admin lives in the EIP-1967 admin slot. The contract-risk
+   * scorer treats a null owner as a concentration-risk signal; this lets the
+   * adapter surface the genuine (multisig) admin instead of a false unknown.
+   * null when owner() is directly readable (cmETH, FBTC).
+   */
+  adminAuthority: string | null;
   mantleTVL_USD: number;
   parentTVL_USD: number;
   /** Holder addresses to probe for concentration. Empty array if none known. */
@@ -51,6 +61,10 @@ export const STATIC: Record<SubjectId, StaticSubject> = {
     sourceVerified: true,
     implementation: "0x3b355A7A25E75A320f631F9736afB3Dcc9F3Ef66",
     proxyPattern: "EIP-1967 transparent proxy",
+    // owner() reverts on the proxy (impl uses AccessControl roles). EIP-1967
+    // admin slot resolves to ProxyAdmin 0x201CDD34…1448, owned by this Gnosis
+    // Safe multisig (verified on-chain via getStorageAt + getOwners()).
+    adminAuthority: "0xC8A7870fFe41054612F7f3433E173D8b5bFcA8E3",
     mantleTVL_USD: 8_000_000,
     parentTVL_USD: 680_000_000,
     holderProbeList: [],
@@ -72,6 +86,7 @@ export const STATIC: Record<SubjectId, StaticSubject> = {
     sourceVerified: true,
     implementation: "0x5A7b3CDe8ac8d780af4797bf1517464ac54ca033",
     proxyPattern: "EIP-1967 transparent proxy",
+    adminAuthority: null, // owner() readable on-chain (Gnosis Safe 0x71a1f918…)
     mantleTVL_USD: 750_000_000,
     parentTVL_USD: 750_000_000,
     holderProbeList: [],
@@ -94,6 +109,7 @@ export const STATIC: Record<SubjectId, StaticSubject> = {
     sourceVerified: true,
     implementation: null,
     proxyPattern: "UUPS",
+    adminAuthority: null, // owner() readable on-chain (Gnosis Safe 0xD90e60EF…)
     mantleTVL_USD: 100_000_000,
     parentTVL_USD: 1_500_000_000,
     holderProbeList: [],
