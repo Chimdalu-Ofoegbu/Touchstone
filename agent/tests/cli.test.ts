@@ -39,6 +39,14 @@ function run(args: string[]) {
   });
 }
 
+// Each `it` spawns a child that cold-starts tsx (transpiling the whole module
+// graph) and does live RPC. The first subject bears the full cold-start cost;
+// under full-suite load that can exceed the default 15s test timeout — a
+// flaky failure that passes in isolation. This is real child-process latency,
+// not a hang, so we give these specific smoke tests generous headroom rather
+// than raising the global timeout (which would mask genuine hangs elsewhere).
+const CLI_TIMEOUT_MS = 120_000;
+
 describe("[2-05-02] CLI smoke — all 3 subjects in --mock mode", () => {
   it.each(["USDY", "cmETH", "FBTC"])(
     "pnpm rate %s --mock exits 0 and prints reasoningHash",
@@ -48,22 +56,31 @@ describe("[2-05-02] CLI smoke — all 3 subjects in --mock mode", () => {
       expect(r.status).toBe(0);
       expect(r.stdout).toMatch(/reasoningHash=0x[0-9a-f]{64}/);
     },
+    CLI_TIMEOUT_MS,
   );
 
-  it("pnpm rate UNKNOWN --mock exits non-zero (T-2-07)", () => {
-    const r = run(["NotASubject", "--mock"]);
-    expect(r.status).not.toBe(0);
-    expect(r.stderr).toMatch(/Unknown subject/);
-  });
+  it(
+    "pnpm rate UNKNOWN --mock exits non-zero (T-2-07)",
+    () => {
+      const r = run(["NotASubject", "--mock"]);
+      expect(r.status).not.toBe(0);
+      expect(r.stderr).toMatch(/Unknown subject/);
+    },
+    CLI_TIMEOUT_MS,
+  );
 
-  it("pnpm rate USDY --mock --out - writes canonical JSON to stdout (no file)", () => {
-    if (existsSync(OUT_DIR)) rmSync(OUT_DIR, { recursive: true, force: true });
-    const r = run(["USDY", "--mock", "--out", "-", "--block", "75000000"]);
-    expect(r.status).toBe(0);
-    // Output: canonical JSON on the first line(s), then "reasoningHash=0x..." line.
-    // W1 fix: split on the reasoningHash boundary and verify each part independently.
-    const [jsonPart, hashLine] = r.stdout.split(/\n(?=reasoningHash=)/);
-    expect(() => JSON.parse(jsonPart)).not.toThrow();
-    expect(hashLine).toMatch(/^reasoningHash=0x[0-9a-f]{64}/);
-  });
+  it(
+    "pnpm rate USDY --mock --out - writes canonical JSON to stdout (no file)",
+    () => {
+      if (existsSync(OUT_DIR)) rmSync(OUT_DIR, { recursive: true, force: true });
+      const r = run(["USDY", "--mock", "--out", "-", "--block", "75000000"]);
+      expect(r.status).toBe(0);
+      // Output: canonical JSON on the first line(s), then "reasoningHash=0x..." line.
+      // W1 fix: split on the reasoningHash boundary and verify each part independently.
+      const [jsonPart, hashLine] = r.stdout.split(/\n(?=reasoningHash=)/);
+      expect(() => JSON.parse(jsonPart)).not.toThrow();
+      expect(hashLine).toMatch(/^reasoningHash=0x[0-9a-f]{64}/);
+    },
+    CLI_TIMEOUT_MS,
+  );
 });
