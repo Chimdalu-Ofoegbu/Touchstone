@@ -17,8 +17,8 @@ import {
   shortHash,
   relativeTime,
 } from "@/lib/touchstone";
-import { fetchReasoningDoc, DIMENSION_ORDER, type Dimension } from "@/lib/reasoning";
-import { familyOf, FAMILY_LABEL, FAMILY_MEANING, CONFIDENCE_LABEL, letterOf } from "@/lib/grades";
+import { fetchReasoningDoc, compositeOf, DIMENSION_ORDER, type Dimension } from "@/lib/reasoning";
+import { familyOf, FAMILY_LABEL, FAMILY_MEANING, CONFIDENCE_LABEL, letterOf, gradeBand } from "@/lib/grades";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +32,9 @@ export default async function RatingDetail({ params }: { params: Promise<{ id: s
   const dims: Dimension[] = doc
     ? (DIMENSION_ORDER.map((k) => doc.dimensions.find((d) => d.key === k)).filter(Boolean) as Dimension[])
     : [];
+  // The composite (0–100) is the number the grade ladder maps to a letter —
+  // distinct from confidence. Surfaced so "composite 66 → BBB" is visible.
+  const composite = doc ? compositeOf(doc.dimensions) : null;
 
   const fam = rating ? familyOf(rating.grade) : "prime";
 
@@ -72,6 +75,14 @@ export default async function RatingDetail({ params }: { params: Promise<{ id: s
               </p>
               <p className="mt-1 max-w-xs text-xs text-muted md:ml-auto">{FAMILY_MEANING[fam]}</p>
               <div className="mt-4 flex gap-6 md:justify-end">
+                {composite !== null && (
+                  <div>
+                    <div className="font-mono text-sm tnum text-left">
+                      {composite}<span className="text-faint">/100</span>
+                    </div>
+                    <div className="label">Composite · {letterOf(rating.grade)}</div>
+                  </div>
+                )}
                 <div>
                   <div className="font-mono text-sm tnum text-left">{rating.confidence}</div>
                   <div className="label">Confidence · {CONFIDENCE_LABEL(rating.confidence)}</div>
@@ -123,6 +134,19 @@ export default async function RatingDetail({ params }: { params: Promise<{ id: s
                 <p className="border-y rule py-8 text-sm text-muted">
                   Reasoning JSON is still loading from IPFS (or the gateway is slow). The grade,
                   hash, and verification below are read directly from chain.
+                </p>
+              )}
+              {dims.length > 0 && composite !== null && (
+                <p className="mt-4 border-t rule pt-4 text-xs text-muted">
+                  Averaged with equal 25% weight, the four scores give a composite of{" "}
+                  <span className="font-mono text-ink">{composite}/100</span>, which the grade ladder
+                  maps to{" "}
+                  <span className="font-mono" style={{ color: `rgb(var(--ts-${fam}))` }}>
+                    {letterOf(rating.grade)}
+                  </span>{" "}
+                  <span className="text-faint">(band {gradeBand(letterOf(rating.grade))})</span>.
+                  Confidence ({rating.confidence}) is a separate measure of how much evidence was
+                  readable — not a second score.
                 </p>
               )}
             </section>

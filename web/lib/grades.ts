@@ -49,6 +49,19 @@ export const GRADE_MIN_SCORE: Record<GradeLetter, number> = {
   AAA: 90, AA: 80, A: 70, BBB: 60, BB: 50, B: 40, CCC: 30, CC: 20, C: 10, D: 0,
 };
 
+/**
+ * Inclusive composite-score range for a letter, e.g. "60–69" or "≥ 90" — the
+ * band a composite must fall in to earn that grade. Shared by the methodology
+ * page (the scale ladder) and the rating detail page (composite → grade).
+ */
+export function gradeBand(letter: GradeLetter): string {
+  const floor = GRADE_MIN_SCORE[letter];
+  if (letter === "AAA") return "≥ 90";
+  const idx = LETTERS.indexOf(letter);
+  const ceiling = GRADE_MIN_SCORE[LETTERS[idx - 1]] - 1; // next-better letter's floor − 1
+  return `${floor}–${ceiling}`;
+}
+
 /** Tailwind text/border/bg color class for a grade's family. */
 export function familyColorClass(uint8: number): {
   text: string;

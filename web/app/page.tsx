@@ -4,6 +4,7 @@ import { ConnectWallet } from "@/components/connect-wallet";
 import { Board, type BoardEntry } from "@/components/board";
 import { SiteFooter } from "@/components/site-footer";
 import { getBoard, getRatingHistory, EXPLORER, RATING_REGISTRY } from "@/lib/touchstone";
+import { fetchReasoningDoc, compositeOf } from "@/lib/reasoning";
 
 // Live on-chain data: read fresh every request so a newly published rating shows.
 export const dynamic = "force-dynamic";
@@ -15,7 +16,13 @@ export default async function Home() {
     const board = await getBoard();
     entries = await Promise.all(
       board.map(async ({ subject, rating }) => {
-        const history = rating ? await getRatingHistory(subject.address).catch(() => []) : [];
+        // Sparkline history + reasoning doc fetched in parallel. The doc gives us
+        // the dimension scores → composite (the number the grade ladder maps);
+        // a slow/failed gateway just leaves composite null and the row omits it.
+        const [history, doc] = await Promise.all([
+          rating ? getRatingHistory(subject.address).catch(() => []) : Promise.resolve([]),
+          rating ? fetchReasoningDoc(rating.cid).catch(() => null) : Promise.resolve(null),
+        ]);
         return {
           id: subject.id,
           name: subject.name,
@@ -25,6 +32,7 @@ export default async function Home() {
             ? {
                 grade: rating.grade,
                 confidence: rating.confidence,
+                composite: doc ? compositeOf(doc.dimensions) : null,
                 reasoningHash: rating.reasoningHash,
                 cid: rating.cid,
                 timestamp: rating.timestamp,

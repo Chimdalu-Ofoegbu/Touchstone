@@ -45,6 +45,18 @@ export const DIMENSION_ORDER: DimensionKey[] = [
   "liquidity_stability",
 ];
 
+/**
+ * Composite score (0–100) = the rounded mean of the dimension scores, mirroring
+ * the agent's synthesize.ts (uniform 25% weight). This is the number the grade
+ * ladder maps to a letter (GRADE_MIN_SCORE) — distinct from confidence, which
+ * measures data completeness. Returns null when no dimensions are available
+ * (e.g. the reasoning JSON has not loaded from IPFS yet).
+ */
+export function compositeOf(dims: { score: number }[]): number | null {
+  if (!dims.length) return null;
+  return Math.round(dims.reduce((sum, d) => sum + d.score, 0) / dims.length);
+}
+
 export const DIMENSION_META: Record<DimensionKey, { label: string; blurb: string }> = {
   collateral_quality: {
     label: "Collateral quality",

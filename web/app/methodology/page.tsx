@@ -4,12 +4,10 @@ import { SiteFooter } from "@/components/site-footer";
 import {
   LETTERS,
   familyOf,
-  letterOf,
   FAMILY_LABEL,
   FAMILY_MEANING,
-  GRADE_MIN_SCORE,
+  gradeBand,
   type GradeFamily,
-  type GradeLetter,
 } from "@/lib/grades";
 import { DIMENSIONS, MAX_DIMENSION_SCORE, CONFIDENCE } from "@/lib/methodology";
 import { EXPLORER, RATING_REGISTRY, shortHash } from "@/lib/touchstone";
@@ -21,15 +19,6 @@ export const metadata = {
 };
 
 const FAMILY_ORDER: GradeFamily[] = ["prime", "watch", "caution", "distress"];
-
-/** Inclusive composite-score range (e.g. "60–69" / "≥ 90") for a letter. */
-function scoreRange(letter: GradeLetter): string {
-  const floor = GRADE_MIN_SCORE[letter];
-  if (letter === "AAA") return "≥ 90";
-  const idx = LETTERS.indexOf(letter);
-  const ceiling = GRADE_MIN_SCORE[LETTERS[idx - 1]] - 1; // next-better letter's floor − 1
-  return `${floor}–${ceiling}`;
-}
 
 export default function Methodology() {
   // Group the 10 letters under their family.
@@ -90,7 +79,7 @@ export default function Methodology() {
                       >
                         {l}
                       </span>
-                      <span className="font-mono text-xs tnum text-faint">{scoreRange(l)}</span>
+                      <span className="font-mono text-xs tnum text-faint">{gradeBand(l)}</span>
                     </div>
                   ))}
                 </div>
@@ -181,6 +170,17 @@ export default function Methodology() {
                 <span className="text-watch">55–79 · Moderate</span>
                 <span className="text-distress">&lt; 55 · Low</span>
               </div>
+              <p
+                className="mt-5 border-l-2 pl-4 text-xs leading-relaxed text-muted"
+                style={{ borderColor: "rgb(var(--ts-accent))" }}
+              >
+                <span className="text-ink">Confidence is not the composite score.</span> Both run
+                0–100, but the composite — the number this scale grades into a letter — is the average
+                of the four dimensions, while confidence only counts how much evidence was readable. A
+                90 confidence is <span className="text-ink">not</span> a 90 composite and does not imply
+                AAA: the three live subjects all sit at a composite of 64–69 (BBB) while carrying 85–90
+                confidence.
+              </p>
             </div>
             <div className="shrink-0 border rule-strong p-6 font-mono text-sm">
               <div className="text-faint">confidence =</div>

@@ -117,6 +117,7 @@ export type BoardEntry = {
   rating: {
     grade: number;
     confidence: number;
+    composite: number | null;
     reasoningHash: string;
     cid: string;
     timestamp: number;
@@ -245,10 +246,15 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
           <>
             <div className="col-span-3">
               <GradeChip uint8={e.rating.grade} />
+              {e.rating.composite !== null && (
+                <div className="mt-1 font-mono text-2xs tnum text-faint">
+                  {e.rating.composite}<span className="text-faint">/100 score</span>
+                </div>
+              )}
             </div>
             <div className="col-span-2">
               <div className="font-mono text-sm tnum">{e.rating.confidence}</div>
-              <div className="label">{CONFIDENCE_LABEL(e.rating.confidence)}</div>
+              <div className="label">{CONFIDENCE_LABEL(e.rating.confidence)} confidence</div>
             </div>
             <div className="col-span-1 flex justify-end">
               <Sparkline series={e.series} />
