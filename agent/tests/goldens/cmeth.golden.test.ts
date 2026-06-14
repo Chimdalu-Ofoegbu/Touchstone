@@ -7,6 +7,20 @@ import { cmethMulticallSuccess } from "../fixtures/cmeth.fixture.js";
 vi.mock("../../src/multicall.js", () => ({ multiread: vi.fn() }));
 import { multiread } from "../../src/multicall.js";
 
+// Stub live upgrade-authority resolution with a fixed Gnosis Safe (hermetic);
+// authorityToOwnerFact stays real via importOriginal.
+vi.mock("../../src/admin.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../src/admin.js")>()),
+  resolveUpgradeAuthority: vi.fn(async () => ({
+    address: "0x71a1f9186C381265c736544b70A24E23deCa5037",
+    kind: "safe" as const,
+    threshold: 3,
+    ownerCount: 5,
+    label: "Gnosis Safe 3-of-5 multisig",
+    via: "owner()",
+  })),
+}));
+
 import { fetchCmeth } from "../../src/subjects/cmeth.js";
 import { scoreCollateral } from "../../src/dimensions/collateral-quality.js";
 import { scoreContractRisk } from "../../src/dimensions/contract-risk.js";

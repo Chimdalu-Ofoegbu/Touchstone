@@ -16,12 +16,38 @@ vi.mock("../../src/rpc.js", () => ({
   resolveBlockNumber: vi.fn(async (b?: bigint) => b ?? 88_000_000n),
 }));
 
+// Partial-mock admin.ts: stub the live resolveUpgradeAuthority I/O, keep
+// authorityToOwnerFact real so the adapter builds the owner fact for real.
+const { mockResolveAuthority } = vi.hoisted(() => ({ mockResolveAuthority: vi.fn() }));
+vi.mock("../../src/admin.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../src/admin.js")>()),
+  resolveUpgradeAuthority: mockResolveAuthority,
+}));
+const SAFE = {
+  address: "0x71a1f9186C381265c736544b70A24E23deCa5037",
+  kind: "safe" as const,
+  threshold: 3,
+  ownerCount: 5,
+  label: "Gnosis Safe 3-of-5 multisig",
+  via: "owner()",
+};
+const NONE = {
+  address: null,
+  kind: "none" as const,
+  threshold: null,
+  ownerCount: null,
+  label: "unresolved",
+  via: "owner() / EIP-1967 admin slot",
+};
+
 import { multiread } from "../../src/multicall.js";
 import { fetchCmeth } from "../../src/subjects/cmeth.js";
 
 describe("[2-02-03 cmETH] adapter", () => {
   beforeEach(() => {
     vi.mocked(multiread).mockReset();
+    mockResolveAuthority.mockReset();
+    mockResolveAuthority.mockResolvedValue(SAFE);
   });
 
   it("returns SubjectFacts with subject.chainId == 5000 and locked address", async () => {
@@ -52,6 +78,7 @@ describe("[2-02-03 cmETH] adapter", () => {
 
   it("emits null value (missing fact) when multicall returns all failures", async () => {
     vi.mocked(multiread).mockResolvedValue(cmethMulticallAllFail);
+    mockResolveAuthority.mockResolvedValue(NONE);
     const facts = await fetchCmeth(75_000_000n);
     const allOnchain = [
       ...facts.collateral,

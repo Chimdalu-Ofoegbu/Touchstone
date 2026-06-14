@@ -17,6 +17,7 @@ import { multiread, type Read } from "../multicall.js";
 import { resolveBlockNumber } from "../rpc.js";
 import { STATIC, staticFact } from "./static.js";
 import { priceAtBlock } from "../constants/prices.js";
+import { resolveUpgradeAuthority, authorityToOwnerFact } from "../admin.js";
 
 const ADDR: Address = STATIC.FBTC.address;
 
@@ -109,6 +110,21 @@ export async function fetchFbtc(blockNumber?: bigint): Promise<SubjectFacts> {
     }),
   ];
 
+  // Owner / upgrade authority, resolved + classified on-chain (admin.ts). FBTC
+  // exposes owner() directly; the resolver characterizes it (Gnosis Safe M-of-N
+  // vs single key) so the cited rationale reflects the real governance.
+  const authority = await resolveUpgradeAuthority(
+    ADDR,
+    r1[4].ok ? String(r1[4].value) : null,
+    resolvedBlockNumber,
+  );
+  const ownerFact = authorityToOwnerFact(
+    authority,
+    ADDR,
+    ingestBlock,
+    STATIC.FBTC.adminAuthority,
+  );
+
   const contract: Fact[] = [
     onchainFact(
       "totalSupply (raw)",
@@ -128,12 +144,7 @@ export async function fetchFbtc(blockNumber?: bigint): Promise<SubjectFacts> {
       "paused()",
       "Contract pause flag (true if paused).",
     ),
-    onchainFact(
-      "owner",
-      r1[4].ok ? String(r1[4].value) : null,
-      "owner()",
-      "Contract owner / admin address.",
-    ),
+    ownerFact,
     staticFact({
       label: "source verified",
       value: STATIC.FBTC.sourceVerified ? "yes" : "no",

@@ -15,6 +15,7 @@ import type { SubjectFacts, Fact } from "./types.js";
 import { multiread, type Read } from "../multicall.js";
 import { resolveBlockNumber } from "../rpc.js";
 import { STATIC, staticFact } from "./static.js";
+import { resolveUpgradeAuthority, authorityToOwnerFact } from "../admin.js";
 
 const ADDR: Address = STATIC.USDY.address;
 
@@ -109,29 +110,22 @@ export async function fetchUsdy(blockNumber?: bigint): Promise<SubjectFacts> {
     }),
   ];
 
-  // Owner / upgrade authority. USDY's transparent-proxy implementation uses
-  // AccessControl roles, not Ownable, so the proxy's owner() reverts (value
-  // null). When it does, fall back to the on-chain-verified admin recorded in
-  // static config — the EIP-1967 admin slot resolves to a ProxyAdmin owned by
-  // a Gnosis Safe multisig. This gives the contract-risk scorer the genuine
-  // (multisig) admin instead of a false "unknown owner", which the -10
-  // owner-missing heuristic would otherwise read as concentration risk.
-  const ownerOnchain = r1[4].ok ? String(r1[4].value) : null;
-  const ownerFact: Fact = ownerOnchain
-    ? onchainFact(
-        "owner",
-        ownerOnchain,
-        "owner()",
-        "Contract owner / admin address.",
-      )
-    : staticFact({
-        label: "owner",
-        value: STATIC.USDY.adminAuthority,
-        evidence:
-          "owner() is not exposed on the transparent proxy (the implementation uses AccessControl roles, not Ownable). The upgrade authority is the EIP-1967 admin slot, which resolves to a ProxyAdmin (0x201CDD34310A53915Ee55B0a229b5A4EB18D1448) owned by Gnosis Safe " +
-          String(STATIC.USDY.adminAuthority) +
-          " — a multisig, verified on-chain (static config).",
-      });
+  // Owner / upgrade authority, resolved + classified on-chain (admin.ts). USDY's
+  // transparent-proxy implementation uses AccessControl roles, not Ownable, so
+  // owner() reverts; the resolver then reads the EIP-1967 admin slot (ProxyAdmin
+  // → Gnosis Safe) and characterizes it as an M-of-N multisig. STATIC fallback
+  // keeps the rating robust if the live admin-slot read is unavailable.
+  const authority = await resolveUpgradeAuthority(
+    ADDR,
+    r1[4].ok ? String(r1[4].value) : null,
+    resolvedBlockNumber,
+  );
+  const ownerFact = authorityToOwnerFact(
+    authority,
+    ADDR,
+    ingestBlock,
+    STATIC.USDY.adminAuthority,
+  );
 
   const contract: Fact[] = [
     onchainFact(

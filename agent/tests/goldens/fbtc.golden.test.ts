@@ -7,6 +7,20 @@ import { fbtcMulticallSuccess } from "../fixtures/fbtc.fixture.js";
 vi.mock("../../src/multicall.js", () => ({ multiread: vi.fn() }));
 import { multiread } from "../../src/multicall.js";
 
+// Stub live upgrade-authority resolution with a fixed Gnosis Safe (hermetic);
+// authorityToOwnerFact stays real via importOriginal.
+vi.mock("../../src/admin.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../src/admin.js")>()),
+  resolveUpgradeAuthority: vi.fn(async () => ({
+    address: "0xD90e60EFB244221b4C3bab4D8884088272b8Bf97",
+    kind: "safe" as const,
+    threshold: 3,
+    ownerCount: 6,
+    label: "Gnosis Safe 3-of-6 multisig",
+    via: "owner()",
+  })),
+}));
+
 import { fetchFbtc } from "../../src/subjects/fbtc.js";
 import { scoreCollateral } from "../../src/dimensions/collateral-quality.js";
 import { scoreContractRisk } from "../../src/dimensions/contract-risk.js";

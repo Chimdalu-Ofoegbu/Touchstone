@@ -20,12 +20,39 @@ vi.mock("../../src/rpc.js", () => ({
   resolveBlockNumber: vi.fn(async (b?: bigint) => b ?? 88_000_000n),
 }));
 
+// admin.ts does live on-chain reads to resolve/classify the upgrade authority.
+// Mock ONLY resolveUpgradeAuthority (the I/O); keep authorityToOwnerFact real
+// (partial mock via importOriginal) so the adapter builds the fact for real.
+const { mockResolveAuthority } = vi.hoisted(() => ({ mockResolveAuthority: vi.fn() }));
+vi.mock("../../src/admin.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../src/admin.js")>()),
+  resolveUpgradeAuthority: mockResolveAuthority,
+}));
+const SAFE = {
+  address: "0xC8A7870fFe41054612F7f3433E173D8b5bFcA8E3",
+  kind: "safe" as const,
+  threshold: 4,
+  ownerCount: 7,
+  label: "Gnosis Safe 4-of-7 multisig",
+  via: "EIP-1967 admin slot → ProxyAdmin.owner()",
+};
+const NONE = {
+  address: null,
+  kind: "none" as const,
+  threshold: null,
+  ownerCount: null,
+  label: "unresolved",
+  via: "owner() / EIP-1967 admin slot",
+};
+
 import { multiread } from "../../src/multicall.js";
 import { fetchUsdy } from "../../src/subjects/usdy.js";
 
 describe("[2-02-02 USDY] adapter", () => {
   beforeEach(() => {
     vi.mocked(multiread).mockReset();
+    mockResolveAuthority.mockReset();
+    mockResolveAuthority.mockResolvedValue(SAFE);
   });
 
   it("returns SubjectFacts with subject.chainId == 5000 and locked address", async () => {
@@ -58,6 +85,8 @@ describe("[2-02-02 USDY] adapter", () => {
 
   it("emits null value (missing fact) when multicall returns all failures", async () => {
     vi.mocked(multiread).mockResolvedValue(usdyMulticallAllFail);
+    // owner() reverted and the admin slot did not resolve → unresolved authority.
+    mockResolveAuthority.mockResolvedValue(NONE);
     const facts = await fetchUsdy(75_000_000n);
     const allOnchain = [
       ...facts.collateral,

@@ -20,6 +20,20 @@ import { fbtcMulticallSuccess } from "./fixtures/fbtc.fixture.js";
 vi.mock("../src/multicall.js", () => ({ multiread: vi.fn() }));
 import { multiread } from "../src/multicall.js";
 
+// Stub live upgrade-authority resolution with a fixed Gnosis Safe so rate()
+// runs hermetically; authorityToOwnerFact stays real via importOriginal.
+vi.mock("../src/admin.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../src/admin.js")>()),
+  resolveUpgradeAuthority: vi.fn(async () => ({
+    address: "0xC8A7870fFe41054612F7f3433E173D8b5bFcA8E3",
+    kind: "safe" as const,
+    threshold: 4,
+    ownerCount: 7,
+    label: "Gnosis Safe 4-of-7 multisig",
+    via: "owner()",
+  })),
+}));
+
 describe("[2-05-01a] rate() orchestrator — happy path", () => {
   beforeEach(() => {
     vi.mocked(multiread).mockReset();
