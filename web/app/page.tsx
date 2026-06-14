@@ -52,13 +52,13 @@ export default async function Home() {
         {/* masthead + editorial lede */}
         <div>
           {/* masthead */}
-          <header className="reveal flex items-center justify-between border-b rule-strong py-5">
+          <header className="reveal flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b rule-strong py-5">
             <div className="flex items-baseline gap-3">
               <Link href="/" className="font-serif text-2xl leading-none">
                 Touchstone
               </Link>
             </div>
-            <nav className="flex items-center gap-5">
+            <nav className="flex flex-wrap items-center gap-x-5 gap-y-2">
               <Link href="/track-record" className="label hover:text-ink transition-colors">
                 Track record
               </Link>

@@ -5,7 +5,7 @@ import { ConnectWallet } from "./connect-wallet";
 /** Shared masthead. `crumb` renders a back link next to the wordmark. */
 export function SiteHeader({ crumb }: { crumb?: { href: string; label: string } }) {
   return (
-    <header className="flex items-center justify-between border-b rule-strong py-5">
+    <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b rule-strong py-5">
       <div className="flex items-baseline gap-3">
         <Link href="/" className="font-serif text-2xl leading-none">
           Touchstone
@@ -19,7 +19,7 @@ export function SiteHeader({ crumb }: { crumb?: { href: string; label: string } 
           </Link>
         )}
       </div>
-      <nav className="flex items-center gap-5">
+      <nav className="flex flex-wrap items-center gap-x-5 gap-y-2">
         <Link
           href="/track-record"
           className="label inline-flex min-h-6 items-center hover:text-ink transition-colors"
