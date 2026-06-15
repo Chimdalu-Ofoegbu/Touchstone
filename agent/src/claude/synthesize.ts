@@ -249,12 +249,28 @@ export async function synthesizeRating(
       missing_facts: band.missing_facts,
       // Claude narrative — preserved verbatim.
       rationale: claudeDim.rationale,
-      citations: claudeDim.citations,
+      // On-chain citations are pinned to the ingest block (every read used it),
+      // so a model-authored block_number can't drift into the hashed document;
+      // static_config citations keep their block-agnostic source.
+      citations: claudeDim.citations.map((c) =>
+        c.source.address === "static_config"
+          ? c
+          : { ...c, source: { ...c.source, block_number: input.subject.ingestBlock } },
+      ),
     };
   });
 
   const overridden: ReasoningDocument = {
     ...parsed,
+    // Pin the subject identity from the ingested facts — never trust the model's
+    // echo. Otherwise drift/hallucination could publish a hashed rating whose
+    // subject names a different token than the deterministic dimensions scored.
+    subject: {
+      name: input.subject.subject.name,
+      ticker: input.subject.subject.ticker,
+      address: input.subject.subject.address,
+      chain_id: 5000,
+    },
     grade: input.preComputedGrade,
     confidence: input.preComputedConfidence,
     dimensions,

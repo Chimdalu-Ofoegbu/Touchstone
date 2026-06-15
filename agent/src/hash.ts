@@ -11,8 +11,10 @@
 //   - JCS uses UTF-8 with no insignificant whitespace.
 //   - The hash is computed from the in-memory canonical STRING, never from
 //     on-disk bytes (trailing newlines from file writes do NOT affect it).
-//   - BigInt is NOT JSON-serializable; the canonicalize lib throws on BigInt
-//     so the schema (zod number().int()) is the gatekeeper, not this layer.
+//   - BigInt throws from the canonicalize lib directly; nested `undefined` is
+//     silently coerced (in arrays) or dropped (object props) by JCS, NOT thrown.
+//     So zod (number().int(), required fields) is the real gatekeeper — the
+//     non-string guard below only catches a root that canonicalizes to undefined.
 //
 // RESEARCH §5 (hash chain) + §8 (landmines).
 
@@ -31,8 +33,11 @@ import type { ReasoningDocument } from "./schema.js";
 export function canonicalizeDoc(doc: ReasoningDocument): string {
   const out = canonicalize(doc);
   if (typeof out !== "string") {
+    // Only fires when the ROOT value canonicalizes to undefined. Nested undefined
+    // is coerced/dropped (not caught here) and BigInt throws from the lib
+    // directly — zod is the real gatekeeper for those (see header note).
     throw new Error(
-      "canonicalize returned non-string — input contained an un-canonicalizable value (BigInt? Date object? undefined?)",
+      "canonicalize returned a non-string: the document root was un-canonicalizable",
     );
   }
   return out;

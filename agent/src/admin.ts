@@ -9,14 +9,25 @@
 // subject added later inherits the same procedure for free.
 //
 // Determinism (D-04): EVERY read is pinned to the supplied blockNumber, so a
-// replay at the same block reproduces the result byte-for-byte. Reads are
-// best-effort — a single failed sub-read degrades the classification rather
-// than throwing, and a total failure yields { kind: "none" } (the honest
-// "unresolved" outcome the contract-risk scorer reads as a risk signal). No
-// raw RPC error (which may embed a keyed URL) is ever propagated (T-2-03).
+// replay at the same block reproduces the result byte-for-byte. A read is only
+// allowed to resolve to "absent" when the CHAIN says so — a contract revert or
+// empty return (owner() not exposed on a transparent proxy, getOwners() on a
+// non-Safe). A TRANSPORT/RPC failure is NOT a chain signal: it is re-thrown
+// (redacted) so a network flake can never masquerade as "no owner"/"EOA" and
+// silently change the classification (and thus the hashed rationale) at a fixed
+// block — same block gives the same answer, or the run fails loudly. No raw RPC
+// error (which may embed a keyed URL) is ever propagated (T-2-03): callOrNull
+// and rawRead funnel transport errors through redactRpcError.
 
-import { getAddress, type Address, type Hex } from "viem";
-import { publicClient } from "./rpc.js";
+import {
+  BaseError,
+  ContractFunctionRevertedError,
+  ContractFunctionZeroDataError,
+  getAddress,
+  type Address,
+  type Hex,
+} from "viem";
+import { publicClient, redactRpcError } from "./rpc.js";
 import type { Fact } from "./subjects/types.js";
 import { staticFact } from "./subjects/static.js";
 
@@ -58,12 +69,46 @@ const UNRESOLVED: UpgradeAuthority = {
   via: "owner() / EIP-1967 admin slot",
 };
 
-/** Best-effort read: null on any failure, never throws (no RPC URL can leak). */
-async function tryRead<T>(fn: () => Promise<T>): Promise<T | null> {
+/**
+ * True when an error means the call EXECUTED but produced no usable value — it
+ * reverted or returned empty data (owner() absent on a transparent proxy,
+ * getOwners() on a non-Safe). A legitimate chain signal, not a transport failure.
+ */
+function isExecutionEmpty(e: unknown): boolean {
+  return (
+    e instanceof BaseError &&
+    !!e.walk(
+      (err) =>
+        err instanceof ContractFunctionRevertedError ||
+        err instanceof ContractFunctionZeroDataError,
+    )
+  );
+}
+
+/**
+ * Contract read that returns null on a legitimate revert/empty result, but
+ * RE-THROWS (redacted) on a transport/RPC error. The determinism seam: a flaky
+ * endpoint fails the run rather than silently degrading governance to "absent"
+ * and shifting the hashed rationale at a fixed block (D-04).
+ */
+async function callOrNull<T>(fn: () => Promise<T>): Promise<T | null> {
   try {
     return await fn();
-  } catch {
-    return null;
+  } catch (e) {
+    if (isExecutionEmpty(e)) return null;
+    throw redactRpcError(e);
+  }
+}
+
+/**
+ * Raw eth_ read (getCode / getStorageAt) — these don't "revert", so any error
+ * is transport and is re-thrown (redacted), never swallowed.
+ */
+async function rawRead<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (e) {
+    throw redactRpcError(e);
   }
 }
 
@@ -77,7 +122,7 @@ function wordToAddress(word: Hex | null | undefined): Address | null {
 }
 
 async function isContract(address: Address, blockNumber: bigint): Promise<boolean> {
-  const code = await tryRead(() => publicClient.getCode({ address, blockNumber }));
+  const code = await rawRead(() => publicClient.getCode({ address, blockNumber }));
   return !!code && code !== "0x";
 }
 
@@ -91,8 +136,8 @@ async function classify(
     return { address, kind: "eoa", threshold: null, ownerCount: null, label: "EOA (single key)", via };
   }
   const [owners, threshold] = await Promise.all([
-    tryRead(() => publicClient.readContract({ address, abi: SAFE_ABI, functionName: "getOwners", blockNumber })) as Promise<readonly Address[] | null>,
-    tryRead(() => publicClient.readContract({ address, abi: SAFE_ABI, functionName: "getThreshold", blockNumber })) as Promise<bigint | null>,
+    callOrNull(() => publicClient.readContract({ address, abi: SAFE_ABI, functionName: "getOwners", blockNumber })) as Promise<readonly Address[] | null>,
+    callOrNull(() => publicClient.readContract({ address, abi: SAFE_ABI, functionName: "getThreshold", blockNumber })) as Promise<bigint | null>,
   ]);
   if (owners && threshold != null && owners.length > 0) {
     const n = Number(threshold);
@@ -131,7 +176,7 @@ export async function resolveUpgradeAuthority(
     if (owner) return classify(owner, blockNumber, "owner()");
   }
   // (2) owner() not exposed (e.g. a transparent proxy) — read the admin slot.
-  const adminWord = await tryRead(() =>
+  const adminWord = await rawRead(() =>
     publicClient.getStorageAt({ address: proxy, slot: EIP1967_ADMIN_SLOT, blockNumber }),
   );
   const admin = wordToAddress(adminWord);
@@ -139,7 +184,7 @@ export async function resolveUpgradeAuthority(
 
   // A ProxyAdmin contract administers the proxy; its owner() is the true authority.
   if (await isContract(admin, blockNumber)) {
-    const proxyAdminOwner = (await tryRead(() =>
+    const proxyAdminOwner = (await callOrNull(() =>
       publicClient.readContract({ address: admin, abi: OWNABLE_ABI, functionName: "owner", blockNumber }),
     )) as Address | null;
     if (proxyAdminOwner && proxyAdminOwner.toLowerCase() !== ZERO_ADDR) {

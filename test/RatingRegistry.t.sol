@@ -177,4 +177,43 @@ contract RatingRegistryTest is Test {
         assertEq(history[1].grade, uint8(1)); // AA
         assertEq(history[2].grade, uint8(2)); // A
     }
+
+    /// REVIEW (audit) — lock the RatingPublished event payload to storage. Every
+    /// other test reads back only via latestRating, so an event/storage divergence
+    /// (wrong cid/grade/hash in the emitted log) would pass unnoticed. Assert the
+    /// full log: indexed subject + all data fields.
+    function test_publishRating_emitsEventWithPayload() public {
+        _mockGateOwner(agent);
+        vm.expectEmit(true, false, false, true);
+        emit RatingPublished(subject, GradeEnum.BBB, bytes32(uint256(42)), 80, block.timestamp, "bafyevent");
+        vm.prank(agent);
+        registry.publishRating(subject, GradeEnum.BBB, bytes32(uint256(42)), 80, "bafyevent");
+    }
+
+    /// REVIEW (audit) — fail-closed on the single liveness dependency. If the
+    /// ERC-8004 registry's ownerOf reverts (token burned / registry paused),
+    /// publishRating must revert (no open publish path).
+    function test_publishRating_revertsWhenRegistryDown() public {
+        vm.mockCallRevert(
+            registryAddr,
+            abi.encodeWithSelector(IIdentityRegistry.ownerOf.selector, AGENT_TOKEN_ID),
+            bytes("registry down")
+        );
+        vm.prank(agent);
+        vm.expectRevert();
+        registry.publishRating(subject, GradeEnum.AAA, bytes32(uint256(1)), 50, "bafytest");
+    }
+
+    /// REVIEW (audit) — WR-03 sentinel guard: a real rating published for
+    /// address(0) must be returned, never mistaken for "no rating" (timestamp==0
+    /// is the only sentinel, not subject==address(0)).
+    function test_latestRating_addressZeroSubjectIsNotSentinel() public {
+        _mockGateOwner(agent);
+        vm.prank(agent);
+        registry.publishRating(address(0), GradeEnum.AAA, bytes32(uint256(9)), 90, "bafyzero");
+        RatingRegistry.Rating memory latest = registry.latestRating(address(0));
+        assertTrue(latest.timestamp != 0);
+        assertEq(latest.reasoningHash, bytes32(uint256(9)));
+        assertEq(latest.cid, "bafyzero");
+    }
 }

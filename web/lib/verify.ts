@@ -4,6 +4,7 @@
 // This is the "verified on Mantle" control — it reproduces the agent's binding
 // (reasoningHash == keccak256(canonical reasoning JSON)) in the browser.
 
+import canonicalize from "canonicalize";
 import { keccak256, toBytes, type Hex } from "viem";
 
 const GATEWAYS = [
@@ -21,6 +22,9 @@ export type VerifyResult =
       gateway: string;
       doc: unknown;
       bytes: number;
+      /** True when the raw bytes differed but the re-canonicalized JSON matched
+       *  (a gateway reformatted bytes in transit; the rating is still authentic). */
+      reCanonicalized?: boolean;
     }
   | {
       status: "mismatch";
@@ -48,8 +52,8 @@ export async function verifyReasoning(
       }
       const text = await res.text();
       const computedHash = keccak256(toBytes(text));
-      const match = computedHash.toLowerCase() === onChainHash.toLowerCase();
-      if (match) {
+      const eq = (h: Hex) => h.toLowerCase() === onChainHash.toLowerCase();
+      if (eq(computedHash)) {
         let doc: unknown = null;
         try {
           doc = JSON.parse(text);
@@ -63,6 +67,30 @@ export async function verifyReasoning(
           bytes: text.length,
         };
       }
+      // Raw bytes didn't match. A well-behaved gateway streams back the exact
+      // pinned (canonical) bytes, but a re-serializing gateway/proxy can reorder
+      // keys or change whitespace and break the byte hash on an otherwise-honest
+      // rating. Re-canonicalize the parsed JSON (RFC 8785, the same lib the agent
+      // hashes with) and re-hash; if THAT matches, the reasoning is authentic and
+      // only the transport reformatted it.
+      try {
+        const parsed = JSON.parse(text);
+        const canonical = canonicalize(parsed);
+        if (typeof canonical === "string") {
+          const reHash = keccak256(toBytes(canonical));
+          if (eq(reHash)) {
+            return {
+              status: "match",
+              computedHash: reHash,
+              onChainHash,
+              gateway: g,
+              doc: parsed,
+              bytes: text.length,
+              reCanonicalized: true,
+            };
+          }
+        }
+      } catch {}
       return {
         status: "mismatch",
         computedHash,

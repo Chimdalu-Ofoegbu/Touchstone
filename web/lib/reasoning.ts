@@ -96,6 +96,30 @@ const GATEWAYS = [
 // A failed fetch is never cached, so a slow/down gateway is retried next request.
 const docCache = new Map<string, ReasoningDocument>();
 
+/** Minimal shape guard — a swapped or garbage CID can resolve to valid JSON that
+ *  is NOT a ReasoningDocument. Verify the fields the UI dereferences before we
+ *  cache or return it, so a bad pin degrades gracefully (null → the existing
+ *  "reasoning loading" / omitted-composite branches) instead of throwing during
+ *  a server render (which would 500 the detail page and blank the board). */
+function isReasoningDoc(x: unknown): x is ReasoningDocument {
+  if (!x || typeof x !== "object") return false;
+  const d = x as Record<string, unknown>;
+  return (
+    Array.isArray(d.dimensions) &&
+    d.dimensions.length > 0 &&
+    d.dimensions.every(
+      (dim) =>
+        !!dim &&
+        typeof dim === "object" &&
+        typeof (dim as { score?: unknown }).score === "number",
+    ) &&
+    !!d.subject &&
+    typeof d.subject === "object" &&
+    !!d.grade &&
+    typeof d.grade === "object"
+  );
+}
+
 /** Server-side fetch + parse of the reasoning JSON by bare CID (first responsive
  *  gateway), cached by the immutable CID. */
 export async function fetchReasoningDoc(cid: string): Promise<ReasoningDocument | null> {
@@ -109,9 +133,11 @@ export async function fetchReasoningDoc(cid: string): Promise<ReasoningDocument 
         cache: "force-cache",
       });
       if (res.ok) {
-        const doc = (await res.json()) as ReasoningDocument;
-        docCache.set(cid, doc);
-        return doc;
+        const json = (await res.json()) as unknown;
+        if (isReasoningDoc(json)) {
+          docCache.set(cid, json);
+          return json;
+        }
       }
     } catch {}
   }

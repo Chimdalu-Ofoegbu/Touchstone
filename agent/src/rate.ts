@@ -22,9 +22,12 @@
 // override discipline.
 //
 // --mock mode injects a deterministic Claude mock (single hand-authored
-// tool_use payload via fixtureToolUseResponse) and a fixed block timestamp
-// so the hash is reproducible without any network calls. Used by the CLI
-// smoke test and Phase 2 integration tests.
+// tool_use payload via fixtureToolUseResponse) and a fixed block timestamp, so
+// the LLM step makes NO Anthropic API call and generated_at is reproducible.
+// On-chain reads (the adapter's multiread + upgrade-authority resolution) STILL
+// run against the RPC, so pass --block to pin them for a byte-reproducible hash;
+// --mock is NOT a fully offline mode. Used by the CLI smoke test + integration
+// tests (which pass an explicit block).
 //
 // CLAUDE.md absent — Phase 2 binds only the PROJECT.md / CONTEXT.md /
 // RESEARCH.md / PATTERNS.md constraints. The deterministic-vs-LLM seam
@@ -56,9 +59,10 @@ import { fixtureToolUseResponse, mockAnthropicClient } from "./claude/mock.js";
 export type RateOptions = {
   blockNumber?: bigint;
   /**
-   * Injects a deterministic Claude mock + a fixed block timestamp so the
-   * hash is reproducible without any network calls. Used by the CLI smoke
-   * test and Phase 2 integration tests.
+   * Injects a deterministic Claude mock + a fixed block timestamp: the LLM step
+   * makes no Anthropic API call and generated_at is fixed. On-chain reads still
+   * run, so pair with `blockNumber` to pin them for a reproducible hash — `mock`
+   * is NOT a fully offline mode. Used by the CLI smoke test + integration tests.
    */
   mock?: boolean;
   /** CLI sets true; library callers default to false. */
