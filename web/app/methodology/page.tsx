@@ -177,9 +177,9 @@ export default function Methodology() {
                 <span className="text-ink">Confidence is not the composite score.</span> Both run
                 0–100, but the composite — the number this scale grades into a letter — is the average
                 of the four dimensions, while confidence only counts how much evidence was readable. A
-                90 confidence is <span className="text-ink">not</span> a 90 composite and does not imply
-                AAA: the three live subjects all sit at a composite of 64–69 (BBB) while carrying 85–90
-                confidence.
+                95 confidence is <span className="text-ink">not</span> a 95 composite and does not imply
+                AAA: the three live subjects carry 85–95 confidence yet sit at composites of just 64–72
+                — grades of A and BBB.
               </p>
             </div>
             <div className="shrink-0 border rule-strong p-6 font-mono text-sm">

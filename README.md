@@ -78,7 +78,7 @@ Rated against live Mantle Mainnet state. Each subject's **upgrade authority is r
 | **cmETH** — Mantle Restaked ETH | mETH restaked across EigenLayer, Symbiotic, Karak | **BBB** | 64 / 100 | 6-of-14 Gnosis Safe |
 | **FBTC** — FunctionBTC | BTC under an institutional custodian network | **BBB** | 69 / 100 | 5-of-8 Gnosis Safe |
 
-All three carry **High** confidence (85–90). Full cited rationale and the IPFS-verify control live on each subject's detail page.
+All three carry **High** confidence (85–95). Full cited rationale and the IPFS-verify control live on each subject's detail page.
 
 ---
 
