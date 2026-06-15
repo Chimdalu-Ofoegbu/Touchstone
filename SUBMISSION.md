@@ -1,6 +1,6 @@
 # DoraHacks submission — paste-ready copy
 
-Fill the two placeholders before submitting: **`<DEMO_URL>`** (deployed frontend) and **`<VIDEO_URL>`** (≥2-min demo). Everything else is final.
+Fill the remaining placeholder before submitting: **`<VIDEO_URL>`** (≥2-min demo). The live demo URL is set below; everything else is final.
 
 ---
 
@@ -15,7 +15,7 @@ On-chain credit ratings for Mantle real-world assets — issued by an AI agent, 
 - AI Alpha & Data (secondary)
 
 ## Links
-- **Live demo:** `<DEMO_URL>`
+- **Live demo:** https://touchstone-azure.vercel.app/
 - **GitHub:** https://github.com/Chimdalu-Ofoegbu/Touchstone
 - **Demo video:** `<VIDEO_URL>`
 - **RatingRegistry (Mantle Mainnet, verified):** https://mantlescan.xyz/address/0xF16d03965E1870Fc3235198468C56dEC65E5606D
@@ -73,6 +73,6 @@ Solidity 0.8.24 + Foundry (contracts, verified on Mantle Mainnet) · TypeScript 
 - [x] Contract deployed on Mantle Mainnet (`0xF16d…606D`)
 - [x] Contract verified on Mantle Explorer
 - [x] AI-powered function callable on-chain (`requestRating` → `publishRating`)
-- [ ] Frontend demo publicly accessible — `<DEMO_URL>`
+- [x] Frontend demo publicly accessible — https://touchstone-azure.vercel.app/
 - [ ] Deployment address in the DoraHacks submission (use the link above)
 - [ ] Demo video ≥ 2 minutes — `<VIDEO_URL>`
