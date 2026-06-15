@@ -262,7 +262,9 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
             <div className="col-span-2 text-right">
               <div className="font-mono text-xs tnum text-muted">{relativeTime(e.rating.timestamp)}</div>
               {interactive ? (
-                <div className="mt-0.5 flex justify-end">
+                // relative z-10 keeps the re-rate control above the subject cell's
+                // stretched link (below) so it stays independently clickable.
+                <div className="relative z-10 mt-0.5 flex justify-end">
                   <TriggerRating subjectId={e.id} subjectAddress={e.address} rerate />
                 </div>
               ) : (
@@ -273,9 +275,27 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
         );
 
         if (interactive) {
+          // Re-rate-eligible / pending rows can't be a single full-row <Link> — they
+          // host the re-rate <button>, and a <button> nested in an <a> is invalid.
+          // Restore the full-row hover + click affordance with a "stretched link":
+          // the subject link's ::before overlays the whole row (so hovering anywhere
+          // lifts the bg + accents the ticker, and clicking opens the detail page),
+          // while the re-rate control (relative z-10 above) stays independently clickable.
           return (
-            <div key={e.id} className={rowClass} style={style}>
-              {subjectCell}
+            <div
+              key={e.id}
+              className={`${rowClass} relative hover:bg-surface/60 focus-within:ring-1 focus-within:ring-accent`}
+              style={style}
+            >
+              <div className="col-span-4 pr-3">
+                <Link
+                  href={`/rating/${e.id}`}
+                  className="font-mono text-sm transition-colors group-hover:text-accent before:absolute before:inset-0 focus:outline-none"
+                >
+                  {e.id}
+                </Link>
+                <div className="text-xs text-muted">{e.name}</div>
+              </div>
               {ratedCells}
             </div>
           );
