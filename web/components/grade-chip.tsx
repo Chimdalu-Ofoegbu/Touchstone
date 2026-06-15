@@ -25,9 +25,17 @@ export function GradeChip({
 }) {
   const fam = familyOf(uint8);
   const letter = letterOf(uint8);
-  const sizeClass = size === "hero" ? "text-[8rem] leading-[0.8]" : "text-grade";
+  // Row size shrinks on mobile so a 3-letter grade (e.g. "BBB") can't overflow
+  // its column; full 5.5rem `text-grade` returns at md+. Hero is unchanged.
+  const sizeClass =
+    size === "hero"
+      ? "text-[8rem] leading-[0.8]"
+      : "text-[3.25rem] leading-none tracking-[-0.02em] md:text-grade";
   return (
-    <div className="flex items-center gap-3">
+    // Stack the family label under the letter until xl — beside an 88px glyph the
+    // label only fits without overflowing its table column above ~1200px. Inline
+    // (the original broadsheet look) returns at xl+.
+    <div className="flex flex-col items-start gap-1 xl:flex-row xl:items-center xl:gap-3">
       <span
         className={`font-serif ${sizeClass} ${FAMILY_TEXT[fam]} tabular-nums`}
         aria-label={`Grade ${letter}`}

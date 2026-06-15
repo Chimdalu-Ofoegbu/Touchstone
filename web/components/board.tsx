@@ -194,7 +194,7 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
 
       {/* column heads */}
       <div
-        className="reveal -mx-6 grid grid-cols-12 border-b rule px-6 pb-2 label md:-mx-8 md:px-8"
+        className="reveal -mx-6 hidden border-b rule px-6 pb-2 label md:-mx-8 md:grid md:grid-cols-12 md:px-8"
         style={{ animationDelay: "60ms" }}
       >
         <div className="col-span-4">Subject</div>
@@ -206,14 +206,16 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
 
       {/* rows */}
       {rows.map((e, i) => {
+        // Mobile: 2-col card (subject full-width, then grade | confidence, then
+        // updated full-width). md+: the original 12-col broadsheet table.
         const rowClass =
-          "reveal -mx-6 grid grid-cols-12 items-center border-b rule px-6 py-5 group transition-colors last:border-b-0 md:-mx-8 md:px-8";
+          "reveal -mx-6 grid grid-cols-2 items-start gap-x-4 gap-y-3 border-b rule px-6 py-5 group transition-colors last:border-b-0 md:-mx-8 md:grid-cols-12 md:items-center md:gap-0 md:px-8";
         const style = { animationDelay: `${120 + i * 70}ms` };
         const pending = isPending(e.id);
 
         // Subject cell for interactive rows (id links to detail without nesting in an <a>).
         const subjectCell = (
-          <div className="col-span-4 pr-3">
+          <div className="col-span-2 pr-3 md:col-span-4">
             <Link href={`/rating/${e.id}`} className="font-mono text-sm transition-colors hover:text-accent">
               {e.id}
             </Link>
@@ -226,7 +228,7 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
           return (
             <div key={e.id} className={rowClass} style={style}>
               {subjectCell}
-              <div className="col-span-8 flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+              <div className="col-span-2 flex flex-wrap items-center justify-end gap-x-3 gap-y-1 md:col-span-8">
                 <span className="label text-faint">Not yet rated</span>
                 <span className="label text-faint" aria-hidden="true">
                   ·
@@ -244,7 +246,7 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
 
         const ratedCells = (
           <>
-            <div className="col-span-3">
+            <div className="md:col-span-3">
               <GradeChip uint8={e.rating.grade} />
               {e.rating.composite !== null && (
                 <div className="mt-1 font-mono text-2xs tnum text-faint">
@@ -252,11 +254,11 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
                 </div>
               )}
             </div>
-            <div className="col-span-2">
+            <div className="md:col-span-2">
               <div className="font-mono text-sm tnum">{e.rating.confidence}</div>
               <div className="label">{CONFIDENCE_LABEL(e.rating.confidence)} confidence</div>
             </div>
-            <div className="col-span-1 flex justify-end">
+            <div className="hidden md:col-span-1 md:flex md:justify-end">
               <Sparkline series={e.series} />
             </div>
             <div className="col-span-2 text-right">
@@ -287,7 +289,7 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
               className={`${rowClass} relative hover:bg-surface/60 focus-within:ring-1 focus-within:ring-accent`}
               style={style}
             >
-              <div className="col-span-4 pr-3">
+              <div className="col-span-2 pr-3 md:col-span-4">
                 <Link
                   href={`/rating/${e.id}`}
                   className="font-mono text-sm transition-colors group-hover:text-accent before:absolute before:inset-0 focus:outline-none"
@@ -308,7 +310,7 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
             className={`${rowClass} hover:bg-surface/60 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent`}
             style={style}
           >
-            <div className="col-span-4 pr-3">
+            <div className="col-span-2 pr-3 md:col-span-4">
               <div className="font-mono text-sm group-hover:text-accent transition-colors">{e.id}</div>
               <div className="text-xs text-muted">{e.name}</div>
             </div>
