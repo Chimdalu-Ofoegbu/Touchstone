@@ -83,15 +83,36 @@ const GATEWAYS = [
   "https://dweb.link",
 ].filter(Boolean) as string[];
 
-/** Server-side fetch + parse of the reasoning JSON by bare CID (first responsive gateway). */
+// Reasoning docs are content-addressed: a given CID always returns identical
+// bytes, and a new rating produces a new CID. So a fetched doc is immutable and
+// safe to cache forever, keyed by the CID. Two layers cover both runtimes:
+//   1. an in-process Map — instant same-instance reuse (the board renders one row
+//      per rated subject and the detail page re-requests the same CID), and it
+//      works in dev too;
+//   2. Next's Data Cache via `cache: "force-cache"` — persists across requests
+//      and serverless instances in production. The pages stay `force-dynamic` so
+//      the on-chain grade/confidence are read fresh; only this immutable IPFS
+//      fetch opts back into caching.
+// A failed fetch is never cached, so a slow/down gateway is retried next request.
+const docCache = new Map<string, ReasoningDocument>();
+
+/** Server-side fetch + parse of the reasoning JSON by bare CID (first responsive
+ *  gateway), cached by the immutable CID. */
 export async function fetchReasoningDoc(cid: string): Promise<ReasoningDocument | null> {
+  if (!cid) return null;
+  const cached = docCache.get(cid);
+  if (cached) return cached;
   for (const g of GATEWAYS) {
     try {
       const res = await fetch(`${g.replace(/\/$/, "")}/ipfs/${cid}`, {
         signal: AbortSignal.timeout(8000),
-        cache: "no-store",
+        cache: "force-cache",
       });
-      if (res.ok) return (await res.json()) as ReasoningDocument;
+      if (res.ok) {
+        const doc = (await res.json()) as ReasoningDocument;
+        docCache.set(cid, doc);
+        return doc;
+      }
     } catch {}
   }
   return null;
