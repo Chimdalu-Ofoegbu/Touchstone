@@ -31,3 +31,6 @@ Thumbs.db
 
 # Claude Code per-session local state (keep launch.json, drop worktrees)
 .claude/worktrees/
+
+# Local-only demo materials — keep on disk, never commit/push (user directive)
+DEMO-SCRIPT.md
