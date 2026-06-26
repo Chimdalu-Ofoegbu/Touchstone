@@ -3,6 +3,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { ConnectWallet } from "@/components/connect-wallet";
 import { Board, type BoardEntry } from "@/components/board";
 import { SiteFooter } from "@/components/site-footer";
+import { Logo } from "@/components/logo";
 import { getBoard, getRatingHistory, EXPLORER, RATING_REGISTRY } from "@/lib/touchstone";
 import { fetchReasoningDoc, compositeOf } from "@/lib/reasoning";
 
@@ -53,8 +54,9 @@ export default async function Home() {
         <div>
           {/* masthead */}
           <header className="reveal flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b rule-strong py-5">
-            <div className="flex items-baseline gap-3">
-              <Link href="/" className="font-serif text-2xl leading-none">
+            <div className="flex items-center gap-3">
+              <Link href="/" className="flex items-center gap-2 font-serif text-2xl leading-none">
+                <Logo className="h-7 w-7 shrink-0" />
                 Touchstone
               </Link>
             </div>
