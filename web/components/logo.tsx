@@ -1,39 +1,40 @@
 /**
- * Touchstone mark — two forward-leaning rounded bars (a bold stroke + a thinner
- * trailing one), evoking an assayer's streak on the stone. Drawn with
- * `currentColor` so it inherits the wordmark's ink and stays legible on both the
- * dark terminal theme and the light theme (a fixed black mark would vanish on
- * dark). The trailing bar is the same color at reduced opacity for the two-tone
- * look. The standalone favicon (app/icon.svg) carries the brand colors instead.
+ * Touchstone mark — the brand "streak" icon (icon-streak-ink): a bold ink bar
+ * with a lighter trailing bar, on the cream brand tile with rounded corners.
+ * Geometry + colors are taken verbatim from the brand asset
+ * (brand-assets/svg/icon-streak-ink.svg) so this is the exact logo, as vector
+ * (crisp at any size). The same artwork is used for the favicon (app/icon.svg).
  */
 export function Logo({ className }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 24 24"
-      fill="none"
+      viewBox="0 0 200 200"
       className={className}
       role="img"
       aria-label="Touchstone"
     >
-      <line
-        x1="16.5"
-        y1="6"
-        x2="8.5"
-        y2="17"
-        stroke="currentColor"
-        strokeWidth="3.6"
-        strokeLinecap="round"
-      />
-      <line
-        x1="17.5"
-        y1="11"
-        x2="12"
-        y2="18.5"
-        stroke="currentColor"
-        strokeOpacity="0.4"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
+      <rect width="200" height="200" rx="46" fill="#EAE6DA" />
+      <g transform="rotate(-45 100 100)">
+        <line
+          x1="46"
+          y1="100"
+          x2="154"
+          y2="100"
+          stroke="#1C1810"
+          strokeWidth="25"
+          strokeLinecap="round"
+        />
+        <line
+          x1="70"
+          y1="128"
+          x2="148"
+          y2="128"
+          stroke="#1C1810"
+          strokeOpacity="0.7"
+          strokeWidth="6"
+          strokeLinecap="round"
+        />
+      </g>
     </svg>
   );
 }
