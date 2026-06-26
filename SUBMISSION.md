@@ -15,7 +15,7 @@ On-chain credit ratings for Mantle real-world assets — issued by an AI agent, 
 - AI Alpha & Data (secondary)
 
 ## Links
-- **Live demo:** https://touchstone-azure.vercel.app/
+- **Live demo:** https://www.touchstoneai.xyz/
 - **GitHub:** https://github.com/Chimdalu-Ofoegbu/Touchstone
 - **Demo video:** `<VIDEO_URL>`
 - **RatingRegistry (Mantle Mainnet, verified):** https://mantlescan.xyz/address/0xF16d03965E1870Fc3235198468C56dEC65E5606D
@@ -73,6 +73,6 @@ Solidity 0.8.24 + Foundry (contracts, verified on Mantle Mainnet) · TypeScript 
 - [x] Contract deployed on Mantle Mainnet (`0xF16d…606D`)
 - [x] Contract verified on Mantle Explorer
 - [x] AI-powered function callable on-chain (`requestRating` → `publishRating`)
-- [x] Frontend demo publicly accessible — https://touchstone-azure.vercel.app/
+- [x] Frontend demo publicly accessible — https://www.touchstoneai.xyz/
 - [ ] Deployment address in the DoraHacks submission (use the link above)
 - [ ] Demo video ≥ 2 minutes — `<VIDEO_URL>`

@@ -16,7 +16,7 @@ A touchstone is the dark stone assayers struck gold against to judge its purity.
 | **Agent identity** (ERC-8004 NFT #114) | `0xb27c7fa15D25E880Ba4a9a508e166538e106F51e` | [explorer ↗](https://mantlescan.xyz/address/0xb27c7fa15D25E880Ba4a9a508e166538e106F51e) |
 | **ERC-8004 Identity Registry** | `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` | [explorer ↗](https://mantlescan.xyz/address/0x8004A169FB4a3325136EB29fA0ceB6D2e539a432) |
 
-🔗 **Live demo:** **https://touchstone-azure.vercel.app/**
+🔗 **Live demo:** **https://www.touchstoneai.xyz/**
 
 The RatingRegistry is verified on Mantlescan. `publishRating` is gated to the holder of agent identity NFT #114 (a live `ownerOf` check against the canonical ERC-8004 Identity Registry); `requestRating(address)` is open to anyone, so any wallet can trigger the agent on-chain.
 
