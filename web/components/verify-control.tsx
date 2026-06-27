@@ -40,7 +40,7 @@ export function VerifyControl({ cid, reasoningHash }: { cid: string; reasoningHa
           type="button"
           onClick={run}
           disabled={state.status === "checking"}
-          className="inline-flex min-h-6 items-center border border-accent-lo bg-accent-lo px-4 py-2 font-mono text-2xs uppercase tracking-label text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="inline-flex min-h-6 items-center border border-accent bg-accent px-4 py-2 font-mono text-2xs uppercase tracking-label text-accent-ink transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {state.status === "checking" ? "Verifying…" : "Verify against IPFS"}
         </button>

@@ -58,7 +58,7 @@ export function ConnectWallet() {
         onClick={() => connect()}
         disabled={connecting || !hasWallet}
         title={hasWallet ? "Connect an EVM wallet" : "No EVM wallet detected"}
-        className="inline-flex min-h-8 items-center gap-2 border border-accent bg-accent px-4 py-1.5 font-mono text-2xs uppercase tracking-label text-bg transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-hi disabled:opacity-50"
+        className="inline-flex min-h-8 items-center gap-2 border border-accent bg-accent px-4 py-1.5 font-mono text-2xs uppercase tracking-label text-accent-ink transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-hi disabled:opacity-50"
       >
         <WalletIcon />
         {connecting ? "Connecting…" : "Connect wallet"}

@@ -3,7 +3,7 @@ import type { Config } from "tailwindcss";
 /**
  * Touchstone design tokens — "rating-agency broadsheet x precision terminal".
  * Theme-driven via CSS variables (see app/globals.css): light + dark share one
- * language (Instrument Serif display / Geist UI / Geist Mono data, electric-violet
+ * language (Instrument Serif display / Geist UI / Geist Mono data, gold
  * accent, sharp 0-radius corners, hairline rules).
  *
  * Colors are authored as `R G B` triplets in CSS vars so Tailwind can apply
@@ -34,6 +34,7 @@ const config: Config = {
           DEFAULT: withVar("--ts-accent"),
           hi: withVar("--ts-accent-hi"),
           lo: withVar("--ts-accent-lo"),
+          ink: withVar("--ts-accent-ink"), // dark text/icons on gold fills
         },
         // Grade family colors (legible on both themes; tuned per-theme via vars).
         prime: withVar("--ts-prime"),

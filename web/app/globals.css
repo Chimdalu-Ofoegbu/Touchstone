@@ -19,9 +19,10 @@
   --ts-line: 255 255 255; /* hairline rules, used at low alpha */
   --ts-line-alpha: 0.1;
   --ts-grid-alpha: 0.009; /* terminal grid wash — kept very faint */
-  --ts-accent: 122 90 249; /* #7A5AF9 mid violet — primary on dark */
-  --ts-accent-hi: 178 155 246; /* #B29BF6 light violet */
-  --ts-accent-lo: 73 20 246; /* #4914F6 deep violet */
+  --ts-accent: 214 169 71; /* #D6A947 gold — matches the BBB grade (--ts-watch) */
+  --ts-accent-hi: 232 201 134; /* lighter gold — hover / focus lift */
+  --ts-accent-lo: 186 144 54; /* deeper gold */
+  --ts-accent-ink: 26 22 16; /* dark ink for text/icons on gold fills (theme-independent) */
   /* grade families (tuned for the dark base) */
   --ts-prime: 74 201 155; /* teal-green */
   --ts-watch: 214 169 71; /* amber */
@@ -40,9 +41,10 @@
   --ts-line: 23 22 18;
   --ts-line-alpha: 0.12;
   --ts-grid-alpha: 0.006; /* ink-on-paper reads stronger — keep it lower */
-  --ts-accent: 73 20 246; /* #4914F6 deep violet reads strong on paper */
-  --ts-accent-hi: 101 59 245; /* #653BF5 */
-  --ts-accent-lo: 73 20 246;
+  --ts-accent: 168 120 24; /* #A87818 gold — matches the BBB grade (--ts-watch) */
+  --ts-accent-hi: 150 105 20; /* deeper gold — hover / focus on paper */
+  --ts-accent-lo: 132 92 14; /* deeper gold */
+  --ts-accent-ink: 26 22 16; /* dark ink for text/icons on gold fills (theme-independent) */
   --ts-prime: 28 140 100;
   --ts-watch: 168 120 24;
   --ts-caution: 176 86 36;

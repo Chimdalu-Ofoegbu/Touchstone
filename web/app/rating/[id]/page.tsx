@@ -112,7 +112,7 @@ export default async function RatingDetail({ params }: { params: Promise<{ id: s
               <TriggerRating
                 subjectId={subject.id}
                 subjectAddress={subject.address}
-                className="inline-flex min-h-6 items-center gap-1 border border-accent bg-accent px-4 py-2 font-mono text-2xs uppercase tracking-label text-bg transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent disabled:opacity-60"
+                className="inline-flex min-h-6 items-center gap-1 border border-accent bg-accent px-4 py-2 font-mono text-2xs uppercase tracking-label text-accent-ink transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent disabled:opacity-60"
               />
               <Link href="/" className="label inline-flex min-h-6 items-center hover:text-ink">
                 ← Back to board

@@ -97,7 +97,7 @@ function FilterDropdown({
               }}
               className={[
                 "block w-full whitespace-nowrap px-3 py-1.5 text-left font-mono text-2xs uppercase tracking-label transition-colors",
-                f.key === value ? "bg-accent text-bg" : "text-muted hover:bg-surface hover:text-ink",
+                f.key === value ? "bg-accent text-accent-ink" : "text-muted hover:bg-surface hover:text-ink",
               ].join(" ")}
             >
               {f.label}
@@ -183,7 +183,7 @@ export function Board({ entries }: { entries: BoardEntry[] }) {
               className={[
                 "border px-2.5 py-1 font-mono text-2xs uppercase tracking-label transition-colors",
                 "focus:outline-none focus-visible:ring-1 focus-visible:ring-accent",
-                sort === s.key ? "bg-accent text-bg border-accent" : "text-muted hover:text-ink",
+                sort === s.key ? "bg-accent text-accent-ink border-accent" : "text-muted hover:text-ink",
               ].join(" ")}
             >
               {s.label}

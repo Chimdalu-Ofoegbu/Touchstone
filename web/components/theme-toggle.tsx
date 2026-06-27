@@ -30,7 +30,7 @@ function SunIcon() {
 }
 
 /**
- * Light/dark switch. A single sliding toggle (not two buttons): the violet knob
+ * Light/dark switch. A single sliding toggle (not two buttons): the gold knob
  * sits left in Terminal (dark) and right in Paper (light), carrying the icon of
  * the active mode. Persists to localStorage; the no-flash script in layout
  * applies the stored theme before first paint.
@@ -68,7 +68,7 @@ export function ThemeToggle() {
     >
       {/* sliding knob — carries the active mode's icon */}
       <span
-        className="absolute left-[3px] top-[3px] flex h-4 w-4 items-center justify-center bg-accent text-bg transition-transform duration-200 ease-out"
+        className="absolute left-[3px] top-[3px] flex h-4 w-4 items-center justify-center bg-accent text-accent-ink transition-transform duration-200 ease-out"
         style={{ transform: `translateX(${isLight ? 24 : 0}px)` }}
       >
         {isLight ? <SunIcon /> : <MoonIcon />}
