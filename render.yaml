@@ -1,0 +1,31 @@
+# Render blueprint — Touchstone agent watcher as a 24/7 background worker.
+# https://render.com/docs/blueprint-spec
+#
+# New -> Blueprint -> pick this repo. Render reads this file, proposes the worker,
+# and prompts for each `sync: false` secret (enter the values from your local
+# agent .env — they are NOT stored in git). Background workers are a paid plan.
+services:
+  - type: worker
+    name: touchstone-agent-watcher
+    runtime: docker
+    dockerfilePath: ./agent/Dockerfile
+    dockerContext: ./agent
+    plan: starter
+    autoDeploy: true
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: MANTLE_RPC_URL
+        sync: false
+      - key: PINATA_JWT
+        sync: false
+      - key: PINATA_GATEWAY
+        sync: false
+      - key: PRIVATE_KEY
+        sync: false
+      - key: RATING_REGISTRY_ADDRESS
+        sync: false
+      # Per-subject re-rate rate limit (seconds). 6h for a public agent; lower to
+      # test. This is the real, un-bypassable throttle against re-rate spam.
+      - key: RERATE_COOLDOWN_S
+        value: "21600"
