@@ -16,6 +16,7 @@
 
 import type { SubjectFacts, Fact } from "../subjects/types.js";
 import type { BandResult } from "../dimensions/types.js";
+import { scoreToGrade } from "../dimensions/synthesize.js";
 
 /**
  * Strip control characters + newlines from a fact value and cap length.
@@ -100,6 +101,20 @@ export function buildPromptFromFacts(input: BuildPromptInput): string {
   id = c3.nextId;
   const c4 = renderFacts("liquidity", subject.liquidity, id);
 
+  // Authoritative grade — derived from the SAME deterministic scores the engine
+  // publishes (dimensions/synthesize.ts: round(avg) -> scoreToGrade). Stated
+  // explicitly below so Claude narrates the REAL grade instead of (mis)deriving
+  // its own letter — which is exactly how a "BBB" rating once shipped prose that
+  // claimed "an A letter grade".
+  const composite = Math.round(
+    (scores.collateral.score +
+      scores.contract.score +
+      scores.oracle.score +
+      scores.liquidity.score) /
+      4,
+  );
+  const { letter: gradeLetter, uint8: gradeUint8 } = scoreToGrade(composite);
+
   return [
     "SUBJECT: " +
       subject.subject.ticker +
@@ -132,6 +147,15 @@ export function buildPromptFromFacts(input: BuildPromptInput): string {
       scores.liquidity.label +
       '")',
     "",
+    "FINAL GRADE (already computed by the engine — this IS the published grade; do NOT derive or state any different letter):",
+    "  composite " +
+      String(composite) +
+      "/100 (uniform 25% weight) -> " +
+      gradeLetter +
+      " (uint8 " +
+      String(gradeUint8) +
+      ")",
+    "",
     "FACTS USED BY EACH DIMENSION (cite these explicitly in rationale[N] markers):",
     c1.block,
     c2.block,
@@ -148,7 +172,17 @@ export function buildPromptFromFacts(input: BuildPromptInput): string {
     "",
     "INSTRUCTIONS:",
     "- Call submit_rating exactly once.",
-    "- Synthesize an AAA-D letter grade from the four scores (uniform 25% weight).",
+    "- The grade is " +
+      gradeLetter +
+      " (composite " +
+      String(composite) +
+      "/100, uniform 25% weight). Set submit_rating.grade to " +
+      gradeLetter +
+      "=" +
+      String(gradeUint8) +
+      " and keep overall_rationale consistent with " +
+      gradeLetter +
+      "; never state any other letter grade.",
     "- For EACH dimension write a rationale that cites at least 2 facts using [1], [2], ... markers whose IDs map to citations[] entries in the same dimension.",
     "- overall_rationale: 3-5 sentences.",
     "- confidence: integer 30-100. Start from 100 and subtract 5 per fact in MISSING FACTS (floor 30).",

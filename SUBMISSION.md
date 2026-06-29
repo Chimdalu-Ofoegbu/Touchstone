@@ -50,6 +50,8 @@ Every other RWA agent in this hackathon competes on returns — yield optimizers
 | cmETH (Mantle Restaked ETH) | BBB | 64/100 | 6-of-14 Gnosis Safe |
 | FBTC (FunctionBTC) | BBB | 69/100 | 5-of-8 Gnosis Safe |
 
+On-chain `publishRating` txs (2026-06-29): [USDY](https://mantlescan.xyz/tx/0xe5712b231798416ae51100d34ffc20dcf49194b884b80f93ade3c3bfc5d60e6e) · [cmETH](https://mantlescan.xyz/tx/0x8d42d9a745205bf3c2e1aabbf5645fa5bcf69296b49de866429d644db4b38e90) · [FBTC](https://mantlescan.xyz/tx/0x3bf16a48608064e303100fc07d218da6edc68e77d4ab938d9cf5d6cc97077b37)
+
 **The proof it means something.** The *unmodified* engine — no special-casing — was run on Elixir **deUSD**'s pre-failure on-chain state on 2025-10-28 and returned a **B (speculative)**, flagging 65% xUSD concentration with circular collateralization, 4.1× recursive leverage in private Morpho markets, a hardcoded $1.00 oracle, and $520M claimed vs ~$160M actual TVL. deUSD collapsed 2025-11-03..06 — about six days later. Shown honestly as a historical reconstruction, it's the demo's spine: the agent would have warned you first.
 
 ---

@@ -125,6 +125,43 @@ function sanitizeError(e: unknown): Error {
 }
 
 /**
+ * Defense-in-depth (prose/grade consistency): Claude controls the free-text
+ * rationale while the engine overrides the structured grade, so the narrative
+ * can disagree with the published grade — e.g. a BBB rating whose
+ * overall_rationale claims it "maps to an A letter grade". Reject any rationale
+ * that explicitly asserts a DIFFERENT letter grade than the deterministic one,
+ * so a self-contradicting document can never be hashed or published. Patterns
+ * target explicit grade assertions only ("X letter grade", "maps to X",
+ * "grade of X", "rated X"); incidental mentions like "below A-tier" do not trip.
+ */
+function assertRationaleMatchesGrade(doc: ReasoningDocument): void {
+  const want = doc.grade.letter.toUpperCase();
+  // Ordered longest-first per family so "BBB" is matched before "BB"/"B".
+  const L = "AAA|AA|A|BBB|BB|B|CCC|CC|C|D";
+  const patterns = [
+    new RegExp(`\\b(?:maps?|mapping)\\s+to\\s+(?:an?|the)\\s+(${L})\\b`, "gi"),
+    new RegExp(`\\b(${L})[\\s-]?(?:letter[\\s-]?grade|credit\\s+profile)\\b`, "gi"),
+    new RegExp(`\\bgrade\\s+of\\s+(${L})\\b`, "gi"),
+    new RegExp(`\\brated\\s+(${L})\\b`, "gi"),
+  ];
+  const text = [doc.overall_rationale, ...doc.dimensions.map((d) => d.rationale)].join("  ");
+  for (const re of patterns) {
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(text)) !== null) {
+      if (m[1].toUpperCase() !== want) {
+        throw new Error(
+          'rationale asserts grade "' +
+            m[1] +
+            '" but the deterministic grade is "' +
+            doc.grade.letter +
+            '" (prose/grade contradiction — synthesize guard)',
+        );
+      }
+    }
+  }
+}
+
+/**
  * Single-shot Anthropic call with forced submit_rating tool (D-09, D-10).
  *
  * Engine overrides (T-2-06 + defense-in-depth):
@@ -278,6 +315,9 @@ export async function synthesizeRating(
     claude_model: MODEL,
     ingest_block: input.subject.ingestBlock,
   };
+
+  // Defense-in-depth: never hash a document whose prose contradicts the grade.
+  assertRationaleMatchesGrade(overridden);
 
   // Final parse — enforces schema-bound invariants one more time.
   return parseReasoningDocument(overridden);

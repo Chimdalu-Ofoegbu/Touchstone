@@ -80,6 +80,8 @@ Rated against live Mantle Mainnet state. Each subject's **upgrade authority is r
 
 All three carry **High** confidence (85–95). Full cited rationale and the IPFS-verify control live on each subject's detail page.
 
+_Latest publish (2026-06-29) — on-chain `publishRating` transactions: [USDY](https://mantlescan.xyz/tx/0xe5712b231798416ae51100d34ffc20dcf49194b884b80f93ade3c3bfc5d60e6e) · [cmETH](https://mantlescan.xyz/tx/0x8d42d9a745205bf3c2e1aabbf5645fa5bcf69296b49de866429d644db4b38e90) · [FBTC](https://mantlescan.xyz/tx/0x3bf16a48608064e303100fc07d218da6edc68e77d4ab938d9cf5d6cc97077b37)._
+
 ---
 
 ## Historical-downgrade proof: Elixir deUSD

@@ -331,6 +331,48 @@ describe("[2-04-02b] synthesizeRating — happy path + engine overrides (T-2-06)
   });
 });
 
+describe("[2-04-02b2] synthesizeRating — prose/grade consistency guard", () => {
+  it("rejects a rationale that asserts a DIFFERENT letter grade than the engine grade", async () => {
+    // The exact failure mode that shipped: a BBB rating whose prose claims "A".
+    const contradicting = fixtureToolUseResponse({
+      ...validToolArgs,
+      overall_rationale:
+        "Averaging the four scores yields 65.5/100, which maps to an A letter grade.",
+    });
+    const client = mockAnthropicClient([{ kind: "ok", response: contradicting }]);
+    await expect(
+      synthesizeRating({
+        subject,
+        scores,
+        missingFacts: [],
+        preComputedGrade: { letter: "BBB", uint8: 3 },
+        preComputedConfidence: 80,
+        blockTimestampSeconds: 1_717_804_800,
+        client,
+      }),
+    ).rejects.toThrow(/prose\/grade contradiction/);
+  });
+
+  it("accepts a rationale that states the SAME letter grade as the engine", async () => {
+    const consistent = fixtureToolUseResponse({
+      ...validToolArgs,
+      overall_rationale:
+        "Composite 66/100 maps to a BBB letter grade; solid but watch governance.",
+    });
+    const client = mockAnthropicClient([{ kind: "ok", response: consistent }]);
+    const doc = await synthesizeRating({
+      subject,
+      scores,
+      missingFacts: [],
+      preComputedGrade: { letter: "BBB", uint8: 3 },
+      preComputedConfidence: 80,
+      blockTimestampSeconds: 1_717_804_800,
+      client,
+    });
+    expect(doc.grade).toEqual({ letter: "BBB", uint8: 3 });
+  });
+});
+
 describe("[2-04-02c] synthesizeRating — one-retry on schema mismatch (D-10)", () => {
   it("retries once when first response fails zod parse, then succeeds", async () => {
     // confidence: 200 > 100 -> zod parse fails on first try.
