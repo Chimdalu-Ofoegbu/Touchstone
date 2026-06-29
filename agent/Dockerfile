@@ -6,8 +6,8 @@
 
 FROM node:22-slim
 
-# pnpm via corepack, pinned to the lockfile major (lockfileVersion 9.0 -> pnpm 9).
-RUN corepack enable && corepack prepare pnpm@9 --activate
+# pnpm via corepack, matching the dev toolchain (pnpm 10; lockfileVersion 9.0).
+RUN corepack enable && corepack prepare pnpm@10 --activate
 
 WORKDIR /app
 
